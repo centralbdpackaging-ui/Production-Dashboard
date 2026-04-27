@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Production Dashboard 2026 | Hourly Cutting</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+  <header>
+    <div class="header-left">
+      <div class="logo">HOURLY CUTTING DASHBOARD</div>
+    </div>
+
+    <div class="header-center">
+      <input type="date" id="datePicker">
+      <div class="shift-group" id="shiftButtonGroup">
+        <button class="shift-btn active" data-shift="Day">☀️ DAY</button>
+        <button class="shift-btn" data-shift="Night">🌙 NIGHT</button>
+        <button class="shift-btn" data-shift="Full">🗓️ 24H</button>
+      </div>
+    </div>
+
+    <div class="header-right">
+      <div style="text-align: right;">
+        <div>Updated: <span id="lastUpdated">--:--:--</span></div>
+        <div id="liveClock" style="font-size: 16px; font-weight: bold;">00:00:00</div>
+      </div>
+      <button style="background:none; border:none; color:white; cursor:pointer; font-size: 20px;">⚙️</button>
+    </div>
+  </header>
+
+  <main>
+    <div class="slide-container">
+      <!-- Slide 0: OVERALL SUMMARY -->
+      <section class="slide active" id="slide-0">
+        <div class="slide-title-banner">OVERALL CUTTING SUMMARY</div>
+        
+        <div class="summary-kpi-grid">
+          <div class="summary-kpi-card">
+            <div class="kpi-lbl">TOTAL TARGET</div>
+            <div class="kpi-val" id="sum-total-target">0</div>
+          </div>
+          <div class="summary-kpi-card">
+            <div class="kpi-lbl">TOTAL PRODUCTION</div>
+            <div class="kpi-val green" id="sum-total-prod">0</div>
+          </div>
+          <div class="summary-kpi-card">
+            <div class="kpi-lbl">RUNNING MACHINES</div>
+            <div class="kpi-val" id="sum-running-count">0 <span style="font-size: 20px; color: var(--text-muted);">/ 24</span></div>
+          </div>
+          <div class="summary-kpi-card">
+            <div class="kpi-lbl">TOTAL ACHIEVEMENT</div>
+            <div class="kpi-val yellow" id="sum-total-pct">0%</div>
+          </div>
+        </div>
+
+        <div class="summary-sections-grid">
+          <!-- Side Seal Summary -->
+          <div class="section-card">
+            <div class="section-title">SIDE SEAL</div>
+            <div class="metric-row"><span class="metric-lbl">Production</span><span class="metric-val" id="ss-sum-prod">0</span></div>
+            <div class="metric-row"><span class="metric-lbl">Target</span><span class="metric-val" id="ss-sum-target">0</span></div>
+            <div class="metric-row"><span class="metric-lbl">Achievement</span><span class="metric-val yellow" id="ss-sum-pct">0%</span></div>
+            <div class="mini-stats">
+              <div class="mini-box"><span class="mini-val green" id="ss-run-count">0</span><span class="mini-lbl">Running</span></div>
+              <div class="mini-box"><span class="mini-val red" id="ss-bd-count">0</span><span class="mini-lbl">Breakdown</span></div>
+            </div>
+          </div>
+
+          <!-- Bottom Summary -->
+          <div class="section-card">
+            <div class="section-title">BOTTOM</div>
+            <div class="metric-row"><span class="metric-lbl">Production</span><span class="metric-val" id="bt-sum-prod">0</span></div>
+            <div class="metric-row"><span class="metric-lbl">Target</span><span class="metric-val" id="bt-sum-target">0</span></div>
+            <div class="metric-row"><span class="metric-lbl">Achievement</span><span class="metric-val yellow" id="bt-sum-pct">0%</span></div>
+            <div class="mini-stats">
+              <div class="mini-box"><span class="mini-val green" id="bt-run-count">0</span><span class="mini-lbl">Running</span></div>
+              <div class="mini-box"><span class="mini-val red" id="bt-bd-count">0</span><span class="mini-lbl">Breakdown</span></div>
+            </div>
+          </div>
+
+          <!-- Zip Lock Summary -->
+          <div class="section-card">
+            <div class="section-title">ZIP LOCK</div>
+            <div class="metric-row"><span class="metric-lbl">Production</span><span class="metric-val" id="zl-sum-prod">0</span></div>
+            <div class="metric-row"><span class="metric-lbl">Target</span><span class="metric-val" id="zl-sum-target">0</span></div>
+            <div class="metric-row"><span class="metric-lbl">Achievement</span><span class="metric-val yellow" id="zl-sum-pct">0%</span></div>
+            <div class="mini-stats">
+              <div class="mini-box"><span class="mini-val green" id="zl-run-count">0</span><span class="mini-lbl">Running</span></div>
+              <div class="mini-box"><span class="mini-val red" id="zl-bd-count">0</span><span class="mini-lbl">Breakdown</span></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Section Slides -->
+      <section class="slide" id="slide-1"><div class="slide-title-banner">SIDE SEAL MACHINES</div><div class="machine-grid" id="ss-grid"></div></section>
+      <section class="slide" id="slide-2"><div class="slide-title-banner">BOTTOM MACHINES</div><div class="machine-grid" id="bt-grid"></div></section>
+      <section class="slide" id="slide-3"><div class="slide-title-banner">ZIP LOCK MACHINES</div><div class="machine-grid" id="zl-grid"></div></section>
+    </div>
+  </main>
+
+  <footer>
+    <div class="alert-btn">ALERT</div>
+    <div class="ticker-wrap"><div class="ticker-content" id="tickerMsg">✔ All machines are running within normal parameters.</div></div>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>
