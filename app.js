@@ -233,7 +233,7 @@ function loadData() {
       .withSuccessHandler(data => {
         showLoading(false);
         if (data && !data.error) {
-          State.data = data;
+          State.data = processRawData(data);
           renderAllSlides();
         } else handleError(new Error(data.error || 'Invalid API Response'));
       })
@@ -245,11 +245,58 @@ function loadData() {
       .then(data => {
         showLoading(false);
         if (data.error) throw new Error(data.error);
-        State.data = data;
+        State.data = processRawData(data);
         renderAllSlides();
       })
       .catch(handleError);
   }
+}
+
+/**
+ * NEW: Universal Data Processor
+ * This function handles all mapping and categorization locally.
+ */
+function processRawData(response) {
+  if (!response || !response.rawData) return response;
+  
+  const rawRows = response.rawData;
+  const processed = {
+    machines: { "Side Seal": [], "Bottom": [], "Zip Lock": [] },
+    debug: response.debug,
+    lastUpdated: response.lastUpdated
+  };
+
+  rawRows.forEach(row => {
+    let m = {};
+    // Dynamic Mapping (Case Insensitive)
+    Object.keys(row).forEach(key => {
+      const k = key.toLowerCase().replace(/\s+/g, '');
+      const val = row[key];
+
+      if (k === 'machineno' || k === 'machine' || k === 'id') m.id = val;
+      else if (k === 'productionquar' || k === 'productionquantity' || k.includes('prod')) m.prod = val;
+      else if (k === 'target') m.target = val;
+      else if (k === 'machinestatus' || k === 'status') {
+        const s = String(val).toLowerCase().trim();
+        if (s === 'run' || s === 'running') m.status = 'run';
+        else if (s === 'breakdown' || s === 'bd') m.status = 'bd';
+        else if (s === 'idle') m.status = 'idle';
+        else m.status = 'run';
+      } else {
+        m[k] = val; // Store other fields
+      }
+    });
+
+    // Categorization (Local)
+    if (m.id) {
+      const idStr = String(m.id).toUpperCase();
+      if (idStr.includes('SIDE SEAL')) processed.machines['Side Seal'].push(m);
+      else if (idStr.includes('BOTTOM')) processed.machines['Bottom'].push(m);
+      else if (idStr.includes('ZIP LOCK')) processed.machines['Zip Lock'].push(m);
+    }
+  });
+
+  return processed;
 }
 
 function renderAllSlides() {
