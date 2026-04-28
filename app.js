@@ -284,28 +284,22 @@ function processRawData(response) {
       }
       if (k === 'shift') rowShift = String(val).trim();
     });
-
     // 2. FILTERING: Skip if date or shift doesn't match (unless shift is 'Full')
     const targetDate = State.selectedDate; // YYYY-MM-DD
     const targetShift = State.selectedShift;
 
-    // Fuzzy Date Matching: Try to see if strings match at all
+    // Fuzzy Date Matching
     if (rowDate && targetDate) {
-       // Convert both to strings and check if one contains the other or vice versa
-       const d1 = String(rowDate).toLowerCase();
-       const d2 = String(targetDate).toLowerCase();
-       if (!d1.includes(d2) && !d2.includes(d1)) {
-          // If it's a number (Excel date), we might need more logic, 
-          // but for now let's be strict only if it's clearly a different date.
-          // return; // Commented out for now to see if data flows
-       }
+      if (!String(rowDate).includes(targetDate) && !String(targetDate).includes(rowDate)) {
+        return; // Date mismatch
+      }
     }
     
-    // Fuzzy Shift Matching: e.g. "Day Shift" contains "Day"
+    // Fuzzy Shift Matching
     if (targetShift !== 'Full' && rowShift) {
        const s1 = String(rowShift).toLowerCase();
        const s2 = String(targetShift).toLowerCase();
-       if (!s1.includes(s2)) return;
+       if (!s1.includes(s2)) return; // Shift mismatch
     }
 
     // 3. Strict Mapping: Only keep the fields we need for the dashboard
