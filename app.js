@@ -23,6 +23,14 @@ const State = {
 function init() {
   State.slides = document.querySelectorAll('.slide');
   
+  // Auto-detect Shift based on time (Day: 08:00 - 20:00, Night: rest)
+  const hour = new Date().getHours();
+  if (hour >= 8 && hour < 20) {
+    State.selectedShift = 'Day';
+  } else {
+    State.selectedShift = 'Night';
+  }
+  
   setupEventListeners();
   applyLanguage();
   applyZoom();
@@ -286,12 +294,10 @@ function processRawData(response) {
         else if (typeof val === 'string') rowDate = val.split('T')[0];
         else rowDate = String(val).split('T')[0];
       }
-      if (k === 'shift') rowShift = String(val).trim();
     });
 
-    // 2. FILTERING
-    const targetDate = State.selectedDate;
-    const targetShift = State.selectedShift;
+    // 2. FILTERING: Only filter by date if it's NOT the Daily Record
+    const targetDate = State.selectedDate; // YYYY-MM-DD
     const isDailyRecord = response.debug && response.debug.sourceUsed === 'Daily Record';
 
     if (!isDailyRecord && rowDate && targetDate) {
@@ -300,11 +306,8 @@ function processRawData(response) {
       if (!d1.includes(d2) && !d2.includes(d1)) return;
     }
     
-    if (targetShift !== 'Full' && rowShift) {
-       const s1 = String(rowShift).toLowerCase();
-       const s2 = String(targetShift).toLowerCase();
-       if (!s1.includes(s2)) return;
-    }
+    // Shift filtering REMOVED as per user request. 
+    // We now show all data regardless of shift.
 
     // 3. Mapping: Aggressive search for columns
     Object.keys(row).forEach(key => {
