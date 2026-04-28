@@ -270,6 +270,7 @@ function processRawData(response) {
     lastUpdated: response.lastUpdated
   };
 
+  let currentCat = "Side Seal";
   rawRows.forEach(row => {
     let m = {};
     let rowDate = "";
@@ -281,43 +282,39 @@ function processRawData(response) {
       const val = row[key];
       
       if (k === 'date') {
-        // Normalize date to YYYY-MM-DD
         if (val instanceof Date) rowDate = val.toISOString().split('T')[0];
         else if (typeof val === 'string') rowDate = val.split('T')[0];
         else rowDate = String(val).split('T')[0];
       }
       if (k === 'shift') rowShift = String(val).trim();
     });
+
     // 2. FILTERING
-    const targetDate = State.selectedDate; // YYYY-MM-DD
+    const targetDate = State.selectedDate;
     const targetShift = State.selectedShift;
     const isDailyRecord = response.debug && response.debug.sourceUsed === 'Daily Record';
 
-    // Only filter by date if it's NOT the Daily Record (Master Record needs date filtering)
     if (!isDailyRecord && rowDate && targetDate) {
       const d1 = String(rowDate).toLowerCase().replace(/[^0-9]/g, '');
       const d2 = String(targetDate).toLowerCase().replace(/[^0-9]/g, '');
-      if (!d1.includes(d2) && !d2.includes(d1)) {
-        return; // Date mismatch for Master Record
-      }
+      if (!d1.includes(d2) && !d2.includes(d1)) return;
     }
     
-    // Fuzzy Shift Matching
     if (targetShift !== 'Full' && rowShift) {
        const s1 = String(rowShift).toLowerCase();
        const s2 = String(targetShift).toLowerCase();
-       if (!s1.includes(s2)) return; // Shift mismatch
+       if (!s1.includes(s2)) return;
     }
 
-    // 3. Strict Mapping: Only keep the fields we need for the dashboard
+    // 3. Mapping: Broaden search for columns (fuzzy match)
     Object.keys(row).forEach(key => {
       const k = key.toLowerCase().replace(/\s+/g, '');
       const val = row[key];
 
-      if (k === 'machineno' || k === 'machine' || k === 'id') m.id = val;
-      else if (k === 'productionquar' || k === 'productionquantity' || k.includes('prod')) m.prod = val;
-      else if (k === 'target') m.target = val;
-      else if (k === 'machinestatus' || k === 'status') {
+      if (k.includes('machineno') || k.includes('machine') || k === 'id') m.id = val;
+      else if (k.includes('productionquar') || k.includes('productionquantity') || k.includes('prod')) m.prod = val;
+      else if (k.includes('target')) m.target = val;
+      else if (k.includes('status')) {
         const s = String(val).toLowerCase().trim();
         if (s === 'run' || s === 'running') m.status = 'run';
         else if (s === 'breakdown' || s === 'bd') m.status = 'bd';
@@ -326,15 +323,18 @@ function processRawData(response) {
       }
     });
 
-    // 4. VALIDATION: Skip empty IDs or "TOTAL" rows
-    if (!m.id || String(m.id).toUpperCase().includes('TOTAL')) return;
+    // 4. VALIDATION & STATEFUL CATEGORIZATION
+    const idStr = String(m.id || "").toUpperCase();
+    if (!idStr || idStr.includes('TOTAL') || idStr.includes('GRAND') || idStr.includes('SUM')) return;
 
-    // Categorization (Local)
+    // Detect Category Switchers
+    if (idStr.includes('SIDE SEAL')) { currentCat = "Side Seal"; return; }
+    if (idStr.includes('BOTTOM')) { currentCat = "Bottom"; return; }
+    if (idStr.includes('ZIP LOCK')) { currentCat = "Zip Lock"; return; }
+
+    // Push machine to the active category
     if (m.id) {
-      const idStr = String(m.id).toUpperCase();
-      if (idStr.includes('SIDE SEAL')) processed.machines['Side Seal'].push(m);
-      else if (idStr.includes('BOTTOM')) processed.machines['Bottom'].push(m);
-      else if (idStr.includes('ZIP LOCK')) processed.machines['Zip Lock'].push(m);
+      processed.machines[currentCat].push(m);
     }
   });
 
