@@ -268,7 +268,35 @@ function processRawData(response) {
 
   rawRows.forEach(row => {
     let m = {};
-    // Strict Mapping: Only keep the fields we need for the dashboard
+    let rowDate = "";
+    let rowShift = "";
+
+    // 1. Identify and match Date/Shift first
+    Object.keys(row).forEach(key => {
+      const k = key.toLowerCase().replace(/\s+/g, '');
+      const val = row[key];
+      
+      if (k === 'date') {
+        // Normalize date to YYYY-MM-DD
+        if (val instanceof Date) rowDate = val.toISOString().split('T')[0];
+        else if (typeof val === 'string') rowDate = val.split('T')[0];
+        else rowDate = String(val).split('T')[0];
+      }
+      if (k === 'shift') rowShift = String(val).trim();
+    });
+
+    // 2. FILTERING: Skip if date or shift doesn't match (unless shift is 'Full')
+    const targetDate = State.selectedDate; // YYYY-MM-DD
+    const targetShift = State.selectedShift;
+
+    // Basic date matching (handle partial strings)
+    if (rowDate && !rowDate.includes(targetDate)) return;
+    
+    if (targetShift !== 'Full' && rowShift) {
+       if (rowShift.toLowerCase() !== targetShift.toLowerCase()) return;
+    }
+
+    // 3. Strict Mapping: Only keep the fields we need for the dashboard
     Object.keys(row).forEach(key => {
       const k = key.toLowerCase().replace(/\s+/g, '');
       const val = row[key];
@@ -283,8 +311,6 @@ function processRawData(response) {
         else if (s === 'idle') m.status = 'idle';
         else m.status = 'run';
       }
-      // Note: We are NO LONGER storing other fields (m[k] = val), 
-      // which effectively ignores columns beyond the main data range (Column L).
     });
 
     // Categorization (Local)
