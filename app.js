@@ -306,15 +306,30 @@ function processRawData(response) {
        if (!s1.includes(s2)) return;
     }
 
-    // 3. Mapping: Broaden search for columns (fuzzy match)
+    // 3. Mapping: Priority-based mapping
     Object.keys(row).forEach(key => {
       const k = key.toLowerCase().replace(/\s+/g, '');
       const val = row[key];
 
-      if (k.includes('machineno') || k.includes('machine') || k === 'id') m.id = val;
-      else if (k.includes('productionquar') || k.includes('productionquantity') || k.includes('prod')) m.prod = val;
-      else if (k.includes('target')) m.target = val;
-      else if (k.includes('status')) {
+      // ID Mapping: Prioritize exact matches for machineno/id
+      if (k === 'machineno' || k === 'id') {
+          m.id = val;
+      } else if (k.includes('machine') && !m.id) {
+          m.id = val;
+      }
+      
+      // Prod Mapping
+      if (k.includes('productionquar') || k.includes('productionquantity') || (k.includes('prod') && !k.includes('name'))) {
+          m.prod = val;
+      }
+      
+      // Target Mapping
+      if (k.includes('target')) {
+          m.target = val;
+      }
+
+      // Status Mapping
+      if (k.includes('status')) {
         const s = String(val).toLowerCase().trim();
         if (s === 'run' || s === 'running') m.status = 'run';
         else if (s === 'breakdown' || s === 'bd') m.status = 'bd';
@@ -324,7 +339,7 @@ function processRawData(response) {
     });
 
     // 4. VALIDATION & STATEFUL CATEGORIZATION
-    const idStr = String(m.id || "").toUpperCase();
+    const idStr = String(m.id || "").toUpperCase().trim();
     if (!idStr || idStr.includes('TOTAL') || idStr.includes('GRAND') || idStr.includes('SUM')) return;
 
     // Detect Category Switchers
