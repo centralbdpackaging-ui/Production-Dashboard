@@ -22,6 +22,7 @@ function init() {
   
   // Dashboard Controller Setup
   const settingsBtn = document.getElementById('settingsBtn');
+  const playPauseBtn = document.getElementById('playPauseBtn');
   const modal = document.getElementById('settingsModal');
   const closeBtn = document.getElementById('closeModalBtn');
   const autoSlideToggle = document.getElementById('autoSlideToggle');
@@ -32,6 +33,23 @@ function init() {
       modal.style.display = 'flex';
       // Sync toggle with current state
       if (autoSlideToggle) autoSlideToggle.checked = (State.timer !== null);
+    });
+  }
+
+  if (playPauseBtn) {
+    playPauseBtn.addEventListener('click', () => {
+      if (State.timer) {
+        clearInterval(State.timer);
+        State.timer = null;
+        playPauseBtn.innerText = '▶️';
+        playPauseBtn.title = 'Start Auto-Slide';
+        if (autoSlideToggle) autoSlideToggle.checked = false;
+      } else {
+        startAutoSlide();
+        playPauseBtn.innerText = '⏸️';
+        playPauseBtn.title = 'Pause Auto-Slide';
+        if (autoSlideToggle) autoSlideToggle.checked = true;
+      }
     });
   }
   if (closeBtn && modal) {
@@ -166,6 +184,19 @@ function renderAll() {
     
     renderMachineGrid(`${id}-grid`, machines);
   });
+  
+  // Update Ticker with Machine Metrics
+  let tickerParts = [];
+  Object.values(d.machines).flat().forEach(m => {
+    const p = Number(m.prod) || 0;
+    const t = Number(m.target) || 0;
+    const pct = t > 0 ? Math.round((p / t) * 100) : 0;
+    tickerParts.push(`[${m.id || m.machineNo || 'N/A'}] Target: ${t.toLocaleString()} | Prod: ${p.toLocaleString()} | Ach: ${pct}%`);
+  });
+  const tickerEl = document.getElementById('tickerMsg');
+  if (tickerEl) {
+    tickerEl.innerText = ' • ' + tickerParts.join('  •  ') + ' • ';
+  }
   
   // Render breakdowns to the new grid
   renderMachineGrid('bd-grid', allBDMachines);
