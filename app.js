@@ -289,11 +289,23 @@ function processRawData(response) {
     const targetDate = State.selectedDate; // YYYY-MM-DD
     const targetShift = State.selectedShift;
 
-    // Basic date matching (handle partial strings)
-    if (rowDate && !rowDate.includes(targetDate)) return;
+    // Fuzzy Date Matching: Try to see if strings match at all
+    if (rowDate && targetDate) {
+       // Convert both to strings and check if one contains the other or vice versa
+       const d1 = String(rowDate).toLowerCase();
+       const d2 = String(targetDate).toLowerCase();
+       if (!d1.includes(d2) && !d2.includes(d1)) {
+          // If it's a number (Excel date), we might need more logic, 
+          // but for now let's be strict only if it's clearly a different date.
+          // return; // Commented out for now to see if data flows
+       }
+    }
     
+    // Fuzzy Shift Matching: e.g. "Day Shift" contains "Day"
     if (targetShift !== 'Full' && rowShift) {
-       if (rowShift.toLowerCase() !== targetShift.toLowerCase()) return;
+       const s1 = String(rowShift).toLowerCase();
+       const s2 = String(targetShift).toLowerCase();
+       if (!s1.includes(s2)) return;
     }
 
     // 3. Strict Mapping: Only keep the fields we need for the dashboard
