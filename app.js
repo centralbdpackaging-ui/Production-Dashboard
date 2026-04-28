@@ -326,6 +326,9 @@ function processRawData(response) {
       }
     });
 
+    // 4. VALIDATION: Skip empty IDs or "TOTAL" rows
+    if (!m.id || String(m.id).toUpperCase().includes('TOTAL')) return;
+
     // Categorization (Local)
     if (m.id) {
       const idStr = String(m.id).toUpperCase();
@@ -335,6 +338,7 @@ function processRawData(response) {
     }
   });
 
+  console.log('Processed Dashboard Data:', processed);
   return processed;
 }
 
