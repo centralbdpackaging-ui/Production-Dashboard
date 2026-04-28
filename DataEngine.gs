@@ -17,7 +17,7 @@ function doGet(e) {
  */
 function getDashboardData(params) {
   try {
-    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    const ss = SpreadsheetApp.openById("1x3HKq_aAgtmrDCkCf_O2nKDGQ90fPdzDc5S47s2P_Jc");
     // Default values if params are missing
     const date =
       (params && params.date) || new Date().toISOString().split("T")[0];
