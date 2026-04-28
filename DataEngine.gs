@@ -23,25 +23,14 @@ function getDashboardData(params) {
       (params && params.date) || new Date().toISOString().split("T")[0];
     const shift = (params && params.shift) || "Day";
 
-    const dailyData = parseSheetData(ss, "Daily Record", date, shift);
-    
-    // Categorize data from Daily Record if available
-    const getCat = (prefix, fallbackSheet) => {
-      const filtered = dailyData.filter(m => 
-        m.id && m.id.toString().toUpperCase().startsWith(prefix)
-      );
-      return filtered.length > 0 ? filtered : parseSheetData(ss, fallbackSheet, date, shift);
-    };
-
     const data = {
       machines: {
-        "Side Seal": getCat("SS", "Side Seal"),
-        Bottom: getCat("BT", "Bottom"),
-        "Zip Lock": getCat("ZL", "Zip Lock"),
+        "Side Seal": parseSheetData(ss, "Side Seal", date, shift),
+        Bottom: parseSheetData(ss, "Bottom", date, shift),
+        "Zip Lock": parseSheetData(ss, "Zip Lock", date, shift),
       },
       debug: {
         availableSheets: ss.getSheets().map(s => s.getName()),
-        dailyRecordCount: dailyData.length,
         requestedDate: date,
         requestedShift: shift
       },
