@@ -341,16 +341,25 @@ function processRawData(response) {
     // 4. VALIDATION & STATEFUL CATEGORIZATION
     const idStr = String(m.id || "").toUpperCase().trim();
     
-    // Detect Category Switchers (Check if ID itself is a category name)
-    if (idStr.includes('SIDE SEAL')) { currentCat = "Side Seal"; return; }
-    if (idStr.includes('BOTTOM')) { currentCat = "Bottom"; return; }
-    if (idStr.includes('ZIP LOCK')) { currentCat = "Zip Lock"; return; }
+    // Check if this is a Category Switcher (Header row without data)
+    const hasData = (m.prod !== undefined && m.prod !== "") || (m.target !== undefined && m.target !== "");
+    
+    if (!hasData) {
+      if (idStr.includes('SIDE SEAL')) { currentCat = "Side Seal"; return; }
+      if (idStr.includes('BOTTOM')) { currentCat = "Bottom"; return; }
+      if (idStr.includes('ZIP LOCK')) { currentCat = "Zip Lock"; return; }
+    }
 
     // Skip empty rows or summary rows
     if (!idStr || idStr.includes('TOTAL') || idStr.includes('GRAND') || idStr.includes('SUM')) return;
 
     // Push machine to the active category
     if (m.id) {
+      // Final Categorization Check: If ID contains the category name, use it
+      if (idStr.includes('SIDE SEAL')) currentCat = "Side Seal";
+      else if (idStr.includes('BOTTOM')) currentCat = "Bottom";
+      else if (idStr.includes('ZIP LOCK')) currentCat = "Zip Lock";
+
       processed.machines[currentCat].push(m);
     }
   });
