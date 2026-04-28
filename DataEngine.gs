@@ -49,6 +49,7 @@ function getDashboardData(params) {
         sourceUsed: sourceSheet,
         recordCount: sourceData.length,
         sampleRecord: sourceData.length > 0 ? sourceData[0] : "No records found",
+        headersFound: sourceData.length > 0 && sourceData[0]._debugHeaders ? sourceData[0]._debugHeaders : [],
         requestedDate: date,
         requestedShift: shift
       },
@@ -88,11 +89,11 @@ function parseSheetData(ss, sheetName, date, shift) {
   const rows = values.slice(1);
 
   return rows.map((row) => {
-    let obj = {};
+    let obj = { _debugHeaders: headers };
     headers.forEach((h, i) => {
       // Smart mapping to standard dashboard keys
-      if (h.includes("machine") || h.includes("no")) obj.id = row[i];
-      else if (h.includes("prod")) obj.prod = row[i];
+      if (h.includes("machineno") || h === "machinename" || h === "id") obj.id = row[i];
+      else if (h.includes("prod") || h.includes("quantity")) obj.prod = row[i];
       else if (h.includes("target")) obj.target = row[i];
       else if (h.includes("status")) obj.status = row[i];
       else obj[h] = row[i];
@@ -101,11 +102,12 @@ function parseSheetData(ss, sheetName, date, shift) {
     // Normalize status values (Run, Breakdown, Idle)
     if (obj.status) {
       const s = obj.status.toString().toLowerCase().trim();
-      if (s === "run") obj.status = "run";
+      if (s === "run" || s === "running") obj.status = "run";
       else if (s === "breakdown" || s === "bd") obj.status = "bd";
       else if (s === "idle") obj.status = "idle";
+      else obj.status = "run";
     } else {
-      obj.status = "run"; // Default
+      obj.status = "run";
     }
 
     return obj;
