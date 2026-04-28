@@ -27,7 +27,7 @@
         <div>Updated: <span id="lastUpdated">--:--:--</span></div>
         <div id="liveClock" style="font-size: 16px; font-weight: bold;">00:00:00</div>
       </div>
-      <button style="background:none; border:none; color:white; cursor:pointer; font-size: 20px;">⚙️</button>
+      <button id="settingsBtn" style="background:none; border:none; color:white; cursor:pointer; font-size: 20px;" title="Dashboard Controller">⚙️</button>
     </div>
   </header>
 
@@ -60,9 +60,10 @@
           <!-- Side Seal Summary -->
           <div class="section-card">
             <div class="section-title">SIDE SEAL</div>
-            <div class="metric-row"><span class="metric-lbl">Production</span><span class="metric-val" id="ss-sum-prod">0</span></div>
             <div class="metric-row"><span class="metric-lbl">Target</span><span class="metric-val" id="ss-sum-target">0</span></div>
+            <div class="metric-row"><span class="metric-lbl">Production</span><span class="metric-val" id="ss-sum-prod">0</span></div>
             <div class="metric-row"><span class="metric-lbl">Achievement</span><span class="metric-val yellow" id="ss-sum-pct">0%</span></div>
+            <div class="metric-row"><span class="metric-lbl">Remaining Balance Qty</span><span class="metric-val" id="ss-sum-rem">0</span></div>
             <div class="mini-stats">
               <div class="mini-box"><span class="mini-val green" id="ss-run-count">0</span><span class="mini-lbl">Running</span></div>
               <div class="mini-box"><span class="mini-val red" id="ss-bd-count">0</span><span class="mini-lbl">Breakdown</span></div>
@@ -72,9 +73,10 @@
           <!-- Bottom Summary -->
           <div class="section-card">
             <div class="section-title">BOTTOM</div>
-            <div class="metric-row"><span class="metric-lbl">Production</span><span class="metric-val" id="bt-sum-prod">0</span></div>
             <div class="metric-row"><span class="metric-lbl">Target</span><span class="metric-val" id="bt-sum-target">0</span></div>
+            <div class="metric-row"><span class="metric-lbl">Production</span><span class="metric-val" id="bt-sum-prod">0</span></div>
             <div class="metric-row"><span class="metric-lbl">Achievement</span><span class="metric-val yellow" id="bt-sum-pct">0%</span></div>
+            <div class="metric-row"><span class="metric-lbl">Remaining Balance Qty</span><span class="metric-val" id="bt-sum-rem">0</span></div>
             <div class="mini-stats">
               <div class="mini-box"><span class="mini-val green" id="bt-run-count">0</span><span class="mini-lbl">Running</span></div>
               <div class="mini-box"><span class="mini-val red" id="bt-bd-count">0</span><span class="mini-lbl">Breakdown</span></div>
@@ -84,9 +86,10 @@
           <!-- Zip Lock Summary -->
           <div class="section-card">
             <div class="section-title">ZIP LOCK</div>
-            <div class="metric-row"><span class="metric-lbl">Production</span><span class="metric-val" id="zl-sum-prod">0</span></div>
             <div class="metric-row"><span class="metric-lbl">Target</span><span class="metric-val" id="zl-sum-target">0</span></div>
+            <div class="metric-row"><span class="metric-lbl">Production</span><span class="metric-val" id="zl-sum-prod">0</span></div>
             <div class="metric-row"><span class="metric-lbl">Achievement</span><span class="metric-val yellow" id="zl-sum-pct">0%</span></div>
+            <div class="metric-row"><span class="metric-lbl">Remaining Balance Qty</span><span class="metric-val" id="zl-sum-rem">0</span></div>
             <div class="mini-stats">
               <div class="mini-box"><span class="mini-val green" id="zl-run-count">0</span><span class="mini-lbl">Running</span></div>
               <div class="mini-box"><span class="mini-val red" id="zl-bd-count">0</span><span class="mini-lbl">Breakdown</span></div>
@@ -99,8 +102,32 @@
       <section class="slide" id="slide-1"><div class="slide-title-banner">SIDE SEAL MACHINES</div><div class="machine-grid" id="ss-grid"></div></section>
       <section class="slide" id="slide-2"><div class="slide-title-banner">BOTTOM MACHINES</div><div class="machine-grid" id="bt-grid"></div></section>
       <section class="slide" id="slide-3"><div class="slide-title-banner">ZIP LOCK MACHINES</div><div class="machine-grid" id="zl-grid"></div></section>
+      <section class="slide" id="slide-4"><div class="slide-title-banner">MACHINE BREAKDOWN DETAILS</div><div class="machine-grid" id="bd-grid"></div></section>
     </div>
   </main>
+
+  <!-- Dashboard Controller Modal -->
+  <div id="settingsModal" class="modal-overlay" style="display:none;">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3 style="color:var(--accent-blue);">DASHBOARD CONTROLLER</h3>
+        <button id="closeModalBtn" style="background:none; border:none; color:white; font-size:24px; cursor:pointer;">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="control-btns">
+          <button class="ctrl-btn" data-slide="0">Overall Summary</button>
+          <button class="ctrl-btn" data-slide="1">Side Seal Machines</button>
+          <button class="ctrl-btn" data-slide="2">Bottom Machines</button>
+          <button class="ctrl-btn" data-slide="3">Zip Lock Machines</button>
+          <button class="ctrl-btn" data-slide="4">Breakdown Details</button>
+        </div>
+        <div style="margin-top: 20px; display:flex; align-items:center; gap:10px;">
+          <input type="checkbox" id="autoSlideToggle" checked style="width:18px; height:18px;">
+          <label for="autoSlideToggle" style="font-weight:bold; cursor:pointer;">Enable Auto-Slide</label>
+        </div>
+      </div>
+    </div>
+  </div>
 
   <footer>
     <div class="alert-btn">ALERT</div>

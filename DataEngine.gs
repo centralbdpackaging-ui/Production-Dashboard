@@ -1,9 +1,14 @@
-function doGet() {
-  return HtmlService.createTemplateFromFile('index')
-    .evaluate()
-    .setTitle('Hourly Cutting Dashboard 2026')
-    .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL)
-    .addMetaTag('viewport', 'width=device-width, initial-scale=1');
+function doGet(e) {
+  try {
+    const data = getDashboardData(e.parameter);
+    return ContentService.createTextOutput(JSON.stringify(data)).setMimeType(
+      ContentService.MimeType.JSON,
+    );
+  } catch (err) {
+    return ContentService.createTextOutput(
+      JSON.stringify({ error: err.toString() }),
+    ).setMimeType(ContentService.MimeType.JSON);
+  }
 }
 
 /**
@@ -14,16 +19,17 @@ function getDashboardData(params) {
   try {
     const ss = SpreadsheetApp.getActiveSpreadsheet();
     // Default values if params are missing
-    const date = (params && params.date) || new Date().toISOString().split('T')[0];
+    const date =
+      (params && params.date) || new Date().toISOString().split("T")[0];
     const shift = (params && params.shift) || "Day";
 
     const data = {
       machines: {
         "Side Seal": parseSheetData(ss, "Side Seal", date, shift),
-        "Bottom": parseSheetData(ss, "Bottom", date, shift),
-        "Zip Lock": parseSheetData(ss, "Zip Lock", date, shift)
+        Bottom: parseSheetData(ss, "Bottom", date, shift),
+        "Zip Lock": parseSheetData(ss, "Zip Lock", date, shift),
       },
-      lastUpdated: new Date().getTime()
+      lastUpdated: new Date().getTime(),
     };
     return data;
   } catch (err) {
@@ -37,22 +43,24 @@ function getDashboardData(params) {
 function parseSheetData(ss, sheetName, date, shift) {
   const sheet = ss.getSheetByName(sheetName);
   if (!sheet) return [];
-  
+
   const values = sheet.getDataRange().getValues();
   if (values.length < 2) return [];
-  
+
   // Normalize headers to lowercase and remove spaces
-  const headers = values[0].map(h => h.toString().toLowerCase().trim().replace(/\s+/g, ''));
+  const headers = values[0].map((h) =>
+    h.toString().toLowerCase().trim().replace(/\s+/g, ""),
+  );
   const rows = values.slice(1);
-  
-  return rows.map(row => {
+
+  return rows.map((row) => {
     let obj = {};
     headers.forEach((h, i) => {
       // Smart mapping to standard dashboard keys
-      if (h.includes('machine') || h.includes('no')) obj.id = row[i];
-      else if (h.includes('prod')) obj.prod = row[i];
-      else if (h.includes('target')) obj.target = row[i];
-      else if (h.includes('status')) obj.status = row[i];
+      if (h.includes("machine") || h.includes("no")) obj.id = row[i];
+      else if (h.includes("prod")) obj.prod = row[i];
+      else if (h.includes("target")) obj.target = row[i];
+      else if (h.includes("status")) obj.status = row[i];
       else obj[h] = row[i];
     });
     return obj;

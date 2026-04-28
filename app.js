@@ -20,6 +20,52 @@ const State = {
 function init() {
   State.slides = document.querySelectorAll('.slide');
   
+  // Dashboard Controller Setup
+  const settingsBtn = document.getElementById('settingsBtn');
+  const modal = document.getElementById('settingsModal');
+  const closeBtn = document.getElementById('closeModalBtn');
+  const autoSlideToggle = document.getElementById('autoSlideToggle');
+  const ctrlBtns = document.querySelectorAll('.ctrl-btn');
+
+  if (settingsBtn && modal) {
+    settingsBtn.addEventListener('click', () => {
+      modal.style.display = 'flex';
+      // Sync toggle with current state
+      if (autoSlideToggle) autoSlideToggle.checked = (State.timer !== null);
+    });
+  }
+  if (closeBtn && modal) {
+    closeBtn.addEventListener('click', () => modal.style.display = 'none');
+  }
+  
+  if (autoSlideToggle) {
+    autoSlideToggle.addEventListener('change', (e) => {
+      if (e.target.checked) {
+        startAutoSlide();
+      } else {
+        clearInterval(State.timer);
+        State.timer = null;
+      }
+    });
+  }
+
+  if (ctrlBtns) {
+    ctrlBtns.forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const slideIndex = parseInt(e.target.dataset.slide);
+        goToSlide(slideIndex);
+        if (autoSlideToggle && autoSlideToggle.checked) {
+          clearInterval(State.timer);
+          startAutoSlide();
+        } else {
+          clearInterval(State.timer);
+          State.timer = null;
+        }
+        if (modal) modal.style.display = 'none';
+      });
+    });
+  }
+  
   updateClock();
   setInterval(updateClock, 1000);
   
@@ -90,30 +136,39 @@ function renderAll() {
 
   const cats = { 'Side Seal': 'ss', 'Bottom': 'bt', 'Zip Lock': 'zl' };
   let totalProd = 0, totalTarget = 0, runningCount = 0;
+  let allBDMachines = [];
   
   Object.entries(cats).forEach(([name, id]) => {
     const machines = d.machines[name] || [];
     const catProd = machines.reduce((a, b) => a + (Number(b.prod) || 0), 0);
     const catTarget = machines.reduce((a, b) => a + (Number(b.target) || 0), 0);
     const catRun = machines.filter(m => String(m.status).toLowerCase() === 'run').length;
-    const catBD = machines.filter(m => {
+    const catBDMachines = machines.filter(m => {
       const s = String(m.status).toLowerCase();
       return s.includes('breakdown') || s === 'bd';
-    }).length;
+    });
+    const catBD = catBDMachines.length;
     const catPct = catTarget > 0 ? Math.round((catProd / catTarget) * 100) : 0;
+    const catRem = catTarget - catProd;
+    
+    allBDMachines = allBDMachines.concat(catBDMachines.map(m => ({ ...m, category: name })));
     
     totalProd += catProd;
     totalTarget += catTarget;
     runningCount += catRun;
     
-    safeSetText(`${id}-sum-prod`, catProd.toLocaleString());
     safeSetText(`${id}-sum-target`, catTarget.toLocaleString());
+    safeSetText(`${id}-sum-prod`, catProd.toLocaleString());
     safeSetText(`${id}-sum-pct`, `${catPct}%`);
+    safeSetText(`${id}-sum-rem`, catRem.toLocaleString());
     safeSetText(`${id}-run-count`, catRun);
     safeSetText(`${id}-bd-count`, catBD);
     
     renderMachineGrid(`${id}-grid`, machines);
   });
+  
+  // Render breakdowns to the new grid
+  renderMachineGrid('bd-grid', allBDMachines);
   
   const totalPct = totalTarget > 0 ? Math.round((totalProd / totalTarget) * 100) : 0;
   safeSetText('sum-total-target', totalTarget.toLocaleString());
@@ -129,6 +184,11 @@ function renderMachineGrid(containerId, machines) {
   const container = document.getElementById(containerId);
   if (!container) return;
   
+  if (machines.length === 0 && containerId === 'bd-grid') {
+    container.innerHTML = '<div style="color:var(--green); font-size: 20px; font-weight:bold; grid-column: 1/-1; text-align:center; padding: 40px;">No Machines in Breakdown. All Good!</div>';
+    return;
+  }
+  
   container.innerHTML = machines.map(m => {
     const prod = Number(m.prod) || 0;
     const target = Number(m.target) || 0;
@@ -136,11 +196,13 @@ function renderMachineGrid(containerId, machines) {
     const status = String(m.status).toLowerCase();
     const isBD = status.includes('breakdown') || status === 'bd';
     const statusClass = status === 'run' ? 'badge-run' : (isBD ? 'badge-bd' : '');
+    const titlePrefix = m.category ? `<span style="color:var(--text-muted); font-size:12px; display:block; margin-bottom:2px;">${m.category}</span>` : '';
+    const details = isBD && (m.remark || m.reason || m.breakdownDetails) ? `<div style="color:var(--red); font-size:12px; margin-top:8px; font-weight:bold; border-top:1px solid rgba(239,68,68,0.2); padding-top:5px;">Reason: ${m.remark || m.reason || m.breakdownDetails}</div>` : '';
     
     return `
       <div class="m-card">
         <div class="m-header">
-          <div class="m-title">${m.id || m.machineNo || 'N/A'}</div>
+          <div class="m-title">${titlePrefix}${m.id || m.machineNo || 'N/A'}</div>
           <div class="m-badge ${statusClass}">${status.toUpperCase()}</div>
         </div>
         <div class="m-body">
@@ -160,6 +222,7 @@ function renderMachineGrid(containerId, machines) {
           <span>Efficiency: ${pct}%</span>
           <span>${m.lastUpdate || 'Just now'}</span>
         </div>
+        ${details}
       </div>
     `;
   }).join('');
@@ -181,9 +244,19 @@ function goToSlide(index) {
   State.slides[State.currentSlide].classList.remove('active');
   State.currentSlide = index;
   State.slides[State.currentSlide].classList.add('active');
+  
+  // Highlight active button in modal
+  document.querySelectorAll('.ctrl-btn').forEach(btn => {
+    if (parseInt(btn.dataset.slide) === index) {
+      btn.classList.add('active-view');
+    } else {
+      btn.classList.remove('active-view');
+    }
+  });
 }
 
 function startAutoSlide() {
+  if (State.timer) clearInterval(State.timer);
   State.timer = setInterval(() => {
     let next = (State.currentSlide + 1) % State.slides.length;
     goToSlide(next);
