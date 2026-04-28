@@ -29,6 +29,11 @@ function getDashboardData(params) {
         Bottom: parseSheetData(ss, "Bottom", date, shift),
         "Zip Lock": parseSheetData(ss, "Zip Lock", date, shift),
       },
+      debug: {
+        availableSheets: ss.getSheets().map(s => s.getName()),
+        requestedDate: date,
+        requestedShift: shift
+      },
       lastUpdated: new Date().getTime(),
     };
     return data;
@@ -41,7 +46,18 @@ function getDashboardData(params) {
  * Robust helper to parse sheet data with flexible header mapping
  */
 function parseSheetData(ss, sheetName, date, shift) {
-  const sheet = ss.getSheetByName(sheetName);
+  // Try exact match first
+  let sheet = ss.getSheetByName(sheetName);
+  
+  // Fallback: search for sheet name ignoring case and spaces
+  if (!sheet) {
+    const searchName = sheetName.toLowerCase().replace(/\s+/g, "");
+    sheet = ss.getSheets().find(s => {
+      const n = s.getName().toLowerCase().replace(/\s+/g, "");
+      return n === searchName || n.includes(searchName);
+    });
+  }
+
   if (!sheet) return [];
 
   const values = sheet.getDataRange().getValues();
