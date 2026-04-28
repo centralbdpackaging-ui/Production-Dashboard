@@ -125,9 +125,13 @@ function setupEventListeners() {
 // --- UI Logic ---
 
 function applyZoom() {
-  document.body.style.transform = `scale(${State.zoom})`;
-  document.body.style.width = `${100 / State.zoom}%`;
-  document.body.style.height = `${100 / State.zoom}%`;
+  const shell = document.getElementById('app-shell');
+  if (shell) {
+    shell.style.transform = `scale(${State.zoom})`;
+    shell.style.transformOrigin = 'top left';
+    shell.style.width = `${100 / State.zoom}%`;
+    shell.style.height = `${100 / State.zoom}%`;
+  }
   const zoomVal = document.getElementById('zoomVal');
   if (zoomVal) zoomVal.innerText = `${Math.round(State.zoom * 100)}%`;
 }
