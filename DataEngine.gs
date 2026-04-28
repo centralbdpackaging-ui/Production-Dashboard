@@ -95,15 +95,17 @@ function parseSheetData(ss, sheetName, date, shift) {
       else if (h.includes("prod")) obj.prod = row[i];
       else if (h.includes("target")) obj.target = row[i];
       else if (h.includes("status")) obj.status = row[i];
-      else if (h.includes("breakdown") && h.includes("type")) obj.breakdownType = row[i];
       else obj[h] = row[i];
     });
 
-    // Derive status if missing: if breakdownType is not empty, it's 'bd' (Breakdown)
-    if (!obj.status && obj.breakdownType !== undefined) {
-      obj.status = (obj.breakdownType && obj.breakdownType.toString().trim() !== "") ? "bd" : "run";
-    } else if (!obj.status) {
-      obj.status = "run"; // Default to running if no status info at all
+    // Normalize status values (Run, Breakdown, Idle)
+    if (obj.status) {
+      const s = obj.status.toString().toLowerCase().trim();
+      if (s === "run") obj.status = "run";
+      else if (s === "breakdown" || s === "bd") obj.status = "bd";
+      else if (s === "idle") obj.status = "idle";
+    } else {
+      obj.status = "run"; // Default
     }
 
     return obj;
