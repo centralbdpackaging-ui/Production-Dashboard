@@ -23,11 +23,15 @@ function getDashboardData(params) {
       (params && params.date) || new Date().toISOString().split("T")[0];
     const shift = (params && params.shift) || "Day";
 
-    const dailyData = parseSheetData(ss, "Daily Record", date, shift);
+    const today = new Date().toISOString().split("T")[0];
+    const isToday = (date === today);
+    const sourceSheet = isToday ? "Daily Record" : "Master Record";
     
-    // Categorize data from Daily Record exclusively
+    const sourceData = parseSheetData(ss, sourceSheet, date, shift);
+    
+    // Categorize data from the selected source sheet
     const getCat = (prefix) => {
-      return dailyData.filter(m => 
+      return sourceData.filter(m => 
         m.id && m.id.toString().toUpperCase().startsWith(prefix)
       );
     };
@@ -40,7 +44,8 @@ function getDashboardData(params) {
       },
       debug: {
         availableSheets: ss.getSheets().map(s => s.getName()),
-        dailyRecordCount: dailyData.length,
+        sourceUsed: sourceSheet,
+        recordCount: sourceData.length,
         requestedDate: date,
         requestedShift: shift
       },
