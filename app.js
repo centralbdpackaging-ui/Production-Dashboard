@@ -306,24 +306,24 @@ function processRawData(response) {
        if (!s1.includes(s2)) return;
     }
 
-    // 3. Mapping: Priority-based mapping
+    // 3. Mapping: Aggressive search for columns
     Object.keys(row).forEach(key => {
       const k = key.toLowerCase().replace(/\s+/g, '');
       const val = row[key];
 
-      // ID Mapping: Prioritize exact matches for machineno/id
-      if (k === 'machineno' || k === 'id') {
+      // ID Mapping: Search for 'no', 'sl', 'machine', or 'id'
+      if (k === 'id' || k === 'machineno' || k === 'sl' || k === 'no' || k === 'slno') {
           m.id = val;
-      } else if (k.includes('machine') && !m.id) {
+      } else if ((k.includes('machine') || k.includes('no')) && !m.id) {
           m.id = val;
       }
       
-      // Prod Mapping
-      if (k.includes('productionquar') || k.includes('productionquantity') || (k.includes('prod') && !k.includes('name'))) {
-          m.prod = val;
+      // Prod Mapping: Search for 'prod', 'qty', 'output'
+      if (k.includes('production') || k.includes('prod') || k.includes('qty') || k.includes('output')) {
+          if (!k.includes('name') && !k.includes('status')) m.prod = val;
       }
       
-      // Target Mapping
+      // Target Mapping: Search for 'target'
       if (k.includes('target')) {
           m.target = val;
       }
@@ -340,12 +340,14 @@ function processRawData(response) {
 
     // 4. VALIDATION & STATEFUL CATEGORIZATION
     const idStr = String(m.id || "").toUpperCase().trim();
-    if (!idStr || idStr.includes('TOTAL') || idStr.includes('GRAND') || idStr.includes('SUM')) return;
-
-    // Detect Category Switchers
+    
+    // Detect Category Switchers (Check if ID itself is a category name)
     if (idStr.includes('SIDE SEAL')) { currentCat = "Side Seal"; return; }
     if (idStr.includes('BOTTOM')) { currentCat = "Bottom"; return; }
     if (idStr.includes('ZIP LOCK')) { currentCat = "Zip Lock"; return; }
+
+    // Skip empty rows or summary rows
+    if (!idStr || idStr.includes('TOTAL') || idStr.includes('GRAND') || idStr.includes('SUM')) return;
 
     // Push machine to the active category
     if (m.id) {
@@ -353,7 +355,8 @@ function processRawData(response) {
     }
   });
 
-  console.log('Processed Dashboard Data:', processed);
+  console.log('--- DEBUG: Raw Headers Found ---', rawRows.length > 0 ? Object.keys(rawRows[0]) : 'No Rows');
+  console.log('--- DEBUG: Processed Data ---', processed);
   return processed;
 }
 
