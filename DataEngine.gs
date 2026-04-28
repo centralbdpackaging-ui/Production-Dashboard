@@ -25,19 +25,18 @@ function getDashboardData(params) {
 
     const dailyData = parseSheetData(ss, "Daily Record", date, shift);
     
-    // Categorize data from Daily Record if available
-    const getCat = (prefix, fallbackSheet) => {
-      const filtered = dailyData.filter(m => 
+    // Categorize data from Daily Record exclusively
+    const getCat = (prefix) => {
+      return dailyData.filter(m => 
         m.id && m.id.toString().toUpperCase().startsWith(prefix)
       );
-      return filtered.length > 0 ? filtered : parseSheetData(ss, fallbackSheet, date, shift);
     };
 
     const data = {
       machines: {
-        "Side Seal": getCat("SS", "Side Seal"),
-        Bottom: getCat("BT", "Bottom"),
-        "Zip Lock": getCat("ZL", "Zip Lock"),
+        "Side Seal": getCat("SS"),
+        Bottom: getCat("BT"),
+        "Zip Lock": getCat("ZL"),
       },
       debug: {
         availableSheets: ss.getSheets().map(s => s.getName()),
