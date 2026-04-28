@@ -91,12 +91,18 @@ function parseSheetData(ss, sheetName, date, shift) {
   return rows.map((row) => {
     let obj = { _debugHeaders: headers };
     headers.forEach((h, i) => {
-      // Smart mapping to standard dashboard keys
-      if (h.includes("machineno") || h === "machinename" || h === "id") obj.id = row[i];
-      else if (h.includes("prod") || h.includes("quantity")) obj.prod = row[i];
-      else if (h.includes("target")) obj.target = row[i];
-      else if (h.includes("status")) obj.status = row[i];
-      else obj[h] = row[i];
+      // Direct matching based on user's spreadsheet headers
+      if (h === "machineno" || h === "machine" || h === "id") {
+        obj.id = row[i];
+      } else if (h === "productionquar" || h === "productionquantity" || h.includes("prod")) {
+        obj.prod = row[i];
+      } else if (h === "target") {
+        obj.target = row[i];
+      } else if (h === "machinestatus" || h === "status") {
+        obj.status = row[i];
+      } else {
+        obj[h] = row[i];
+      }
     });
 
     // Normalize status values (Run, Breakdown, Idle)
