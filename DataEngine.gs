@@ -17,13 +17,16 @@ function doGet(e) {
 function getDashboardData(params) {
   try {
     const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
-    const date = params.date;
+    const tz = ss.getSpreadsheetTimeZone();
+    const todayStr = Utilities.formatDate(new Date(), tz, "yyyy-MM-dd");
+    const requestedDate = params.date || todayStr;
     
-    // Determine source sheet
-    const todayStr = new Date().toISOString().split("T")[0];
-    const isToday = (date === todayStr);
-    const sourceSheet = isToday ? "Daily Record" : "Master Record";
-    
+    // Always check Daily Record first, then fallback to requested date logic
+    let sourceSheet = "Daily Record";
+    if (requestedDate !== todayStr) {
+      sourceSheet = "Master Record";
+    }
+
     const rawData = fetchRawSheetData(ss, sourceSheet);
 
     return {
@@ -31,9 +34,9 @@ function getDashboardData(params) {
       debug: {
         sourceUsed: sourceSheet,
         recordCount: rawData.length,
-        requestedDate: date,
-        requestedShift: params.shift,
-        availableSheets: ss.getSheets().map(s => s.getName())
+        today: todayStr,
+        requestedDate: requestedDate,
+        timezone: tz
       },
       lastUpdated: new Date().getTime()
     };
