@@ -309,30 +309,19 @@ function processRawData(response) {
     // Shift filtering REMOVED as per user request. 
     // We now show all data regardless of shift.
 
-    // 3. Mapping: Aggressive search for columns
+    // 3. Mapping: Strict search for main columns
     Object.keys(row).forEach(key => {
       const k = key.toLowerCase().replace(/\s+/g, '');
       const val = row[key];
 
-      // ID Mapping: Search for 'no', 'sl', 'machine', or 'id'
-      if (k === 'id' || k === 'machineno' || k === 'sl' || k === 'no' || k === 'slno') {
+      // Exact or very close matches only
+      if (k === 'machineno' || k === 'id' || k === 'no' || k === 'slno') {
           m.id = val;
-      } else if ((k.includes('machine') || k.includes('no')) && !m.id) {
-          m.id = val;
-      }
-      
-      // Prod Mapping: Search for 'prod', 'qty', 'output'
-      if (k.includes('production') || k.includes('prod') || k.includes('qty') || k.includes('output')) {
-          if (!k.includes('name') && !k.includes('status')) m.prod = val;
-      }
-      
-      // Target Mapping: Search for 'target'
-      if (k.includes('target')) {
+      } else if (k === 'productionquar' || k === 'productionquantity') {
+          m.prod = val;
+      } else if (k === 'target') {
           m.target = val;
-      }
-
-      // Status Mapping
-      if (k.includes('status')) {
+      } else if (k.includes('status')) {
         const s = String(val).toLowerCase().trim();
         if (s === 'run' || s === 'running') m.status = 'run';
         else if (s === 'breakdown' || s === 'bd') m.status = 'bd';
@@ -344,23 +333,21 @@ function processRawData(response) {
     // 4. VALIDATION & STATEFUL CATEGORIZATION
     const idStr = String(m.id || "").toUpperCase().trim();
     
-    // Convert values to clean numbers
-    const pVal = parseFloat(String(m.prod).replace(/[^0-9.]/g, '')) || 0;
-    const tVal = parseFloat(String(m.target).replace(/[^0-9.]/g, '')) || 0;
+    // Clean numbers
+    const pVal = parseFloat(String(m.prod || 0).replace(/[^0-9.]/g, '')) || 0;
+    const tVal = parseFloat(String(m.target || 0).replace(/[^0-9.]/g, '')) || 0;
     m.prod = pVal;
     m.target = tVal;
 
-    // Check if this is a Category Switcher (Header row without data)
-    const hasData = m.prod > 0 || m.target > 0;
-    
-    if (!hasData) {
+    // Skip summary rows or empty IDs
+    if (!idStr || idStr.includes('TOTAL') || idStr.includes('GRAND') || idStr.includes('SUM')) return;
+
+    // Detect Category Switchers (only if no data)
+    if (m.target === 0 && m.prod === 0) {
       if (idStr.includes('SIDE SEAL')) { currentCat = "Side Seal"; return; }
       if (idStr.includes('BOTTOM')) { currentCat = "Bottom"; return; }
       if (idStr.includes('ZIP LOCK')) { currentCat = "Zip Lock"; return; }
     }
-
-    // Skip summary rows to prevent double counting
-    if (!idStr || idStr.includes('TOTAL') || idStr.includes('GRAND') || idStr.includes('SUM')) return;
 
     // Push machine to the active category
     if (m.id) {
