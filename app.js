@@ -40,6 +40,8 @@ function setupEventListeners() {
   // Navigation
   document.getElementById('prevSlideBtn')?.addEventListener('click', prevSlide);
   document.getElementById('nextSlideBtn')?.addEventListener('click', nextSlide);
+  document.getElementById('prevSlideHeader')?.addEventListener('click', prevSlide);
+  document.getElementById('nextSlideHeader')?.addEventListener('click', nextSlide);
 
   // Settings Modal
   const settingsBtn = document.getElementById('settingsBtn');
