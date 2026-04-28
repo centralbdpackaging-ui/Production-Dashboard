@@ -202,12 +202,21 @@ function loadData() {
   document.getElementById('errorOverlay').style.display = 'none';
 
   const handleError = (err) => {
-    console.error('Fetch Error:', err);
+    console.warn('Data Load Warning:', err);
     showLoading(false);
-    showError(err.message || 'Unknown connection error');
+    
+    // Only show the blocking error overlay if we have absolutely no data to show
+    // "Failed to fetch" is usually a CORS issue in local development
     if (!State.data) {
+      console.log('No data available, falling back to mock data...');
       State.data = getMockData();
       renderAllSlides();
+      
+      // Optional: show a small toast instead of a blocking overlay
+      console.warn('Dashboard is running with Mock Data due to connection issues.');
+    } else if (err.message && !err.message.includes('fetch')) {
+      // Show actual API errors if it's not a connection/CORS issue
+      showError(err.message);
     }
   };
 
