@@ -38,9 +38,9 @@ function getDashboardData(params) {
 
     const data = {
       machines: {
-        "Side Seal": getCat("SS"),
-        Bottom: getCat("BT"),
-        "Zip Lock": getCat("ZL"),
+        "Side Seal": getCat("SIDE SEAL"),
+        Bottom: getCat("BOTTOM"),
+        "Zip Lock": getCat("ZIP LOCK"),
       },
       debug: {
         availableSheets: ss.getSheets().map(s => s.getName()),
