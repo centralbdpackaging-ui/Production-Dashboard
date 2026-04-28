@@ -267,6 +267,7 @@ function renderAllSlides() {
       const t = Number(m.target) || 0;
       const s = String(m.status).toLowerCase();
       const isBD = s.includes('breakdown') || s === 'bd';
+      const isIdle = s === 'idle';
       
       if (isBD) breakdowns.push({ ...m, category: name });
       
@@ -274,9 +275,10 @@ function renderAllSlides() {
         prod: acc.prod + p,
         target: acc.target + t,
         run: acc.run + (s === 'run' ? 1 : 0),
+        idle: acc.idle + (isIdle ? 1 : 0),
         bd: acc.bd + (isBD ? 1 : 0)
       };
-    }, { prod: 0, target: 0, run: 0, bd: 0 });
+    }, { prod: 0, target: 0, run: 0, idle: 0, bd: 0 });
 
     const pct = stats.target > 0 ? Math.round((stats.prod / stats.target) * 100) : 0;
     
@@ -285,6 +287,7 @@ function renderAllSlides() {
     safeSetText(`${prefix}-sum-pct`, `${pct}%`);
     safeSetText(`${prefix}-sum-rem`, (stats.target - stats.prod).toLocaleString());
     safeSetText(`${prefix}-run-count`, stats.run);
+    safeSetText(`${prefix}-idle-count`, stats.idle);
     safeSetText(`${prefix}-bd-count`, stats.bd);
     
     renderMachineGrid(`${prefix}-grid`, list);
