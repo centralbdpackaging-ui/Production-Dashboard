@@ -29,11 +29,13 @@ function getDashboardData(params) {
     
     const sourceData = parseSheetData(ss, sourceSheet, date, shift);
     
-    // Categorize data from the selected source sheet
-    const getCat = (prefix) => {
-      return sourceData.filter(m => 
-        m.id && m.id.toString().toUpperCase().startsWith(prefix)
-      );
+    // Categorize data from the selected source sheet (more flexible matching)
+    const getCat = (search) => {
+      return sourceData.filter(m => {
+        if (!m.id) return false;
+        const idStr = m.id.toString().toUpperCase();
+        return idStr.includes(search.toUpperCase());
+      });
     };
 
     const data = {
@@ -46,6 +48,7 @@ function getDashboardData(params) {
         availableSheets: ss.getSheets().map(s => s.getName()),
         sourceUsed: sourceSheet,
         recordCount: sourceData.length,
+        sampleRecord: sourceData.length > 0 ? sourceData[0] : "No records found",
         requestedDate: date,
         requestedShift: shift
       },
