@@ -268,7 +268,7 @@ function processRawData(response) {
 
   rawRows.forEach(row => {
     let m = {};
-    // Dynamic Mapping (Case Insensitive)
+    // Strict Mapping: Only keep the fields we need for the dashboard
     Object.keys(row).forEach(key => {
       const k = key.toLowerCase().replace(/\s+/g, '');
       const val = row[key];
@@ -282,9 +282,9 @@ function processRawData(response) {
         else if (s === 'breakdown' || s === 'bd') m.status = 'bd';
         else if (s === 'idle') m.status = 'idle';
         else m.status = 'run';
-      } else {
-        m[k] = val; // Store other fields
       }
+      // Note: We are NO LONGER storing other fields (m[k] = val), 
+      // which effectively ignores columns beyond the main data range (Column L).
     });
 
     // Categorization (Local)
