@@ -160,7 +160,7 @@ function syncSettingsUI() {
 
 function showLoading(show) {
   const el = document.getElementById('loadingOverlay');
-  if (el) el.style.display = show ? 'flex' : 'none';
+  if (el) el.style.display = 'none'; // Always hidden to avoid blocking UI
 }
 
 function showError(msg) {
