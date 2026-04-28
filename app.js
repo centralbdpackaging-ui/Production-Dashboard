@@ -284,14 +284,17 @@ function processRawData(response) {
       }
       if (k === 'shift') rowShift = String(val).trim();
     });
-    // 2. FILTERING: Skip if date or shift doesn't match (unless shift is 'Full')
+    // 2. FILTERING
     const targetDate = State.selectedDate; // YYYY-MM-DD
     const targetShift = State.selectedShift;
+    const isDailyRecord = response.debug && response.debug.sourceUsed === 'Daily Record';
 
-    // Fuzzy Date Matching
-    if (rowDate && targetDate) {
-      if (!String(rowDate).includes(targetDate) && !String(targetDate).includes(rowDate)) {
-        return; // Date mismatch
+    // Only filter by date if it's NOT the Daily Record (Master Record needs date filtering)
+    if (!isDailyRecord && rowDate && targetDate) {
+      const d1 = String(rowDate).toLowerCase().replace(/[^0-9]/g, '');
+      const d2 = String(targetDate).toLowerCase().replace(/[^0-9]/g, '');
+      if (!d1.includes(d2) && !d2.includes(d1)) {
+        return; // Date mismatch for Master Record
       }
     }
     
