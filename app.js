@@ -51,10 +51,12 @@ function setupEventListeners() {
   const zoomRange = document.getElementById('zoomRange');
 
   settingsBtn?.addEventListener('click', () => {
-    modal.style.display = 'flex';
+    document.body.classList.toggle('settings-open');
     syncSettingsUI();
   });
-  closeBtn?.addEventListener('click', () => modal.style.display = 'none');
+  closeBtn?.addEventListener('click', () => {
+    document.body.classList.remove('settings-open');
+  });
   
   autoSlideToggle?.addEventListener('change', (e) => {
     if (e.target.checked) startSlideTimer();
@@ -87,7 +89,9 @@ function setupEventListeners() {
   document.querySelectorAll('.ctrl-btn').forEach(btn => {
     btn.addEventListener('click', (e) => {
       goToSlide(parseInt(btn.dataset.slide));
-      modal.style.display = 'none';
+      // Removed: modal.style.display = 'none'; // Keep side panel open or close it?
+      // User said "side by side", so usually it stays or toggles. 
+      // I'll leave it open for now as it's a "Controller".
     });
   });
 
@@ -148,6 +152,8 @@ function syncSettingsUI() {
   if (zoomRange) zoomRange.value = State.zoom;
   if (zoomVal) zoomVal.innerText = `${Math.round(State.zoom * 100)}%`;
   if (autoSlideToggle) autoSlideToggle.checked = (State.timer !== null);
+  
+  // Highlighting is handled by CSS when side panel is open, but we still update the checked state
 }
 
 function showLoading(show) {
