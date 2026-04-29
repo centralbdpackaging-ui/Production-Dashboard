@@ -56,13 +56,13 @@
                 <div class="kpi-val green" id="sum-total-prod">0</div>
               </div>
               <div class="summary-kpi-card">
+                <div class="kpi-lbl" data-en="TOTAL ACHIEVEMENT" data-bn="মোট অর্জন">TOTAL ACHIEVEMENT</div>
+                <div class="kpi-val yellow" id="sum-total-pct">0%</div>
+              </div>
+              <div class="summary-kpi-card">
                 <div class="kpi-lbl" data-en="RUNNING MACHINES" data-bn="চলমান মেশিন">RUNNING MACHINES</div>
                 <div class="kpi-val" id="sum-running-count">0 <span style="font-size: 20px; color: var(--text-muted);">/
                     24</span></div>
-              </div>
-              <div class="summary-kpi-card">
-                <div class="kpi-lbl" data-en="TOTAL ACHIEVEMENT" data-bn="মোট অর্জন">TOTAL ACHIEVEMENT</div>
-                <div class="kpi-val yellow" id="sum-total-pct">0%</div>
               </div>
             </div>
 
@@ -192,17 +192,35 @@
         </div>
         <div class="modal-body">
           <div class="control-btns">
-            <button class="ctrl-btn" data-slide="0" data-en="Overall Summary" data-bn="সার্বিক সারসংক্ষেপ">Overall
-              Summary</button>
-            <button class="ctrl-btn" data-slide="1" data-en="Side Seal Machines" data-bn="সাইড সিল মেশিন">Side Seal
-              Machines</button>
-            <button class="ctrl-btn" data-slide="2" data-en="Bottom Machines" data-bn="বটম মেশিন">Bottom
-              Machines</button>
-            <button class="ctrl-btn" data-slide="3" data-en="Zip Lock Machines" data-bn="জিপ লক মেশিন">Zip Lock
-              Machines</button>
-            <button class="ctrl-btn" data-slide="4" data-en="Breakdown Details" data-bn="ব্রেকডাউন বিস্তারিত">Breakdown
-              Details</button>
-            <button class="ctrl-btn" data-slide="5" data-en="Master Data" data-bn="মাস্টার ডাটা">Master Data</button>
+            <div class="slide-toggle-item">
+              <input type="checkbox" class="slide-toggle-cb" data-slide="0" checked title="Include in Auto-Slide">
+              <button class="ctrl-btn" data-slide="0" data-en="Overall Summary" data-bn="সার্বিক সারসংক্ষেপ">Overall
+                Summary</button>
+            </div>
+            <div class="slide-toggle-item">
+              <input type="checkbox" class="slide-toggle-cb" data-slide="1" checked title="Include in Auto-Slide">
+              <button class="ctrl-btn" data-slide="1" data-en="Side Seal Machines" data-bn="সাইড সিল মেশিন">Side Seal
+                Machines</button>
+            </div>
+            <div class="slide-toggle-item">
+              <input type="checkbox" class="slide-toggle-cb" data-slide="2" checked title="Include in Auto-Slide">
+              <button class="ctrl-btn" data-slide="2" data-en="Bottom Machines" data-bn="বটম মেশিন">Bottom
+                Machines</button>
+            </div>
+            <div class="slide-toggle-item">
+              <input type="checkbox" class="slide-toggle-cb" data-slide="3" checked title="Include in Auto-Slide">
+              <button class="ctrl-btn" data-slide="3" data-en="Zip Lock Machines" data-bn="জিপ লক মেশিন">Zip Lock
+                Machines</button>
+            </div>
+            <div class="slide-toggle-item">
+              <input type="checkbox" class="slide-toggle-cb" data-slide="4" checked title="Include in Auto-Slide">
+              <button class="ctrl-btn" data-slide="4" data-en="Breakdown Details" data-bn="ব্রেকডাউন বিস্তারিত">Breakdown
+                Details</button>
+            </div>
+            <div class="slide-toggle-item">
+              <input type="checkbox" class="slide-toggle-cb" data-slide="5" checked title="Include in Auto-Slide">
+              <button class="ctrl-btn" data-slide="5" data-en="Master Data" data-bn="মাস্টার ডাটা">Master Data</button>
+            </div>
           </div>
 
           <div class="settings-grid">

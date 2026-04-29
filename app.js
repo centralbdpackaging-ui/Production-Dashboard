@@ -17,7 +17,8 @@ const State = {
   language: localStorage.getItem('dash_lang') || CONFIG.DEFAULT_LANGUAGE,
   zoom: parseFloat(localStorage.getItem('dash_zoom')) || CONFIG.DEFAULT_ZOOM,
   isPaused: false,
-  showAll: false
+  showAll: false,
+  enabledSlides: JSON.parse(localStorage.getItem('dash_enabled_slides')) || [0, 1, 2, 3, 4, 5]
 };
 
 // --- Initializer ---
@@ -96,13 +97,27 @@ function setupEventListeners() {
     applyZoom();
   });
 
-  // Slide Selection
+  // Slide Selection and Toggling
   document.querySelectorAll('.ctrl-btn').forEach(btn => {
     btn.addEventListener('click', (e) => {
       goToSlide(parseInt(btn.dataset.slide));
-      // Removed: modal.style.display = 'none'; // Keep side panel open or close it?
-      // User said "side by side", so usually it stays or toggles. 
-      // I'll leave it open for now as it's a "Controller".
+    });
+  });
+
+  document.querySelectorAll('.slide-toggle-cb').forEach(cb => {
+    // Set initial checkbox state
+    cb.checked = State.enabledSlides.includes(parseInt(cb.dataset.slide));
+    
+    cb.addEventListener('change', (e) => {
+      const slideIdx = parseInt(e.target.dataset.slide);
+      if (e.target.checked) {
+        if (!State.enabledSlides.includes(slideIdx)) State.enabledSlides.push(slideIdx);
+      } else {
+        State.enabledSlides = State.enabledSlides.filter(id => id !== slideIdx);
+      }
+      // Sort to maintain order
+      State.enabledSlides.sort((a, b) => a - b);
+      localStorage.setItem('dash_enabled_slides', JSON.stringify(State.enabledSlides));
     });
   });
 
@@ -199,11 +214,33 @@ function goToSlide(index) {
 }
 
 function nextSlide() {
-  goToSlide((State.currentSlide + 1) % State.slides.length);
+  if (State.enabledSlides.length === 0) return;
+  
+  let nextIndex = (State.currentSlide + 1) % State.slides.length;
+  let attempts = 0;
+  while (!State.enabledSlides.includes(nextIndex) && attempts < State.slides.length) {
+    nextIndex = (nextIndex + 1) % State.slides.length;
+    attempts++;
+  }
+  
+  if (State.enabledSlides.includes(nextIndex)) {
+    goToSlide(nextIndex);
+  }
 }
 
 function prevSlide() {
-  goToSlide((State.currentSlide - 1 + State.slides.length) % State.slides.length);
+  if (State.enabledSlides.length === 0) return;
+  
+  let prevIndex = (State.currentSlide - 1 + State.slides.length) % State.slides.length;
+  let attempts = 0;
+  while (!State.enabledSlides.includes(prevIndex) && attempts < State.slides.length) {
+    prevIndex = (prevIndex - 1 + State.slides.length) % State.slides.length;
+    attempts++;
+  }
+  
+  if (State.enabledSlides.includes(prevIndex)) {
+    goToSlide(prevIndex);
+  }
 }
 
 function startSlideTimer() {
@@ -336,26 +373,29 @@ function processRawData(response) {
       }
 
       // Status & Remarks
-      if (k.includes('status') || k === 'st') {
-        const rawS = String(val).toLowerCase();
-        const cleanS = rawS.replace(/[^a-z0-9]/g, ''); // removes spaces, slashes, dashes etc.
-        
-        if (cleanS.includes('run')) {
-          m.status = 'run';
-        } else if (cleanS.includes('idle')) {
-          m.status = 'idle';
-        } else if (
-          cleanS.includes('break') || 
-          cleanS.includes('bd') || 
-          cleanS.includes('down') || 
-          cleanS.includes('stop') ||
-          rawS.includes('break')
-        ) {
-          m.status = 'breakdown';
-        } else {
-          m.status = 'run'; // Default if empty or unknown
-        }
-      }
+     if (k === 'machinestatus' || k === 'status' || k === 'st') {
+  const rawS = String(val || '').toLowerCase().trim();
+  const cleanS = rawS.replace(/[\s\-\/]/g, '');
+
+  if (
+    cleanS === 'breakdown' ||
+    cleanS.includes('break') ||
+    cleanS.includes('bd') ||
+    cleanS.includes('down') ||
+    cleanS.includes('stop')
+  ) {
+    m.status = 'breakdown';
+
+  } else if (cleanS.includes('idle')) {
+    m.status = 'idle';
+
+  } else if (cleanS.includes('run')) {
+    m.status = 'run';
+
+  } else {
+    m.status = 'run';
+  }
+}
       
       if (k.includes('remark') || k.includes('reason') || k.includes('details')) {
         m.remark = String(val);
