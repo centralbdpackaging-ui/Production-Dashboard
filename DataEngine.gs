@@ -21,13 +21,15 @@ function getDashboardData(params) {
     const todayStr = Utilities.formatDate(new Date(), tz, "yyyy-MM-dd");
     const requestedDate = params.date || todayStr;
     
-    // Always check Daily Record first, then fallback to requested date logic
-    let sourceSheet = "Daily Record";
-    if (requestedDate !== todayStr) {
-      sourceSheet = "Master Record";
+    // Priority: Always try "Master Record" first as requested.
+    let sourceSheet = "Master Record";
+    // Fallback logic if needed, but primary is now Master Record
+    let rawData = fetchRawSheetData(ss, sourceSheet);
+    
+    if (rawData.length === 0) {
+      sourceSheet = "Daily Record";
+      rawData = fetchRawSheetData(ss, sourceSheet);
     }
-
-    const rawData = fetchRawSheetData(ss, sourceSheet);
 
     return {
       rawData: rawData,
