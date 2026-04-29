@@ -275,7 +275,8 @@ function processRawData(response) {
   const processed = {
     machines: { "Side Seal": [], "Bottom": [], "Zip Lock": [] },
     debug: response.debug,
-    lastUpdated: response.lastUpdated
+    lastUpdated: response.lastUpdated,
+    rawFiltered: []
   };
 
   let currentCat = "Side Seal";
@@ -339,6 +340,9 @@ function processRawData(response) {
 
       if (!match) return;
     }
+
+    // Keep the raw row for the Master Data table
+    processed.rawFiltered.push(row);
 
     // 3. Cleanup & Validation
     const idStr = String(m.id || "").toUpperCase().trim();
@@ -433,6 +437,9 @@ function renderAllSlides() {
   Ticker.build(Object.values(d.machines).flat());
   renderMachineGrid('bd-grid', breakdowns);
   
+  // Render Master Data Table
+  renderMasterDataTable(d.rawFiltered || []);
+  
   safeSetText('lastUpdated', new Date().toLocaleTimeString());
 }
 
@@ -484,6 +491,25 @@ function renderMachineGrid(id, machines) {
     `;
   }).join('');
   applyLanguage();
+}
+
+function renderMasterDataTable(rows) {
+  const headEl = document.getElementById('master-data-head');
+  const bodyEl = document.getElementById('master-data-body');
+  if (!headEl || !bodyEl) return;
+
+  if (rows.length === 0) {
+    headEl.innerHTML = '';
+    bodyEl.innerHTML = '<tr><td style="padding: 20px; text-align: center;">No data available for selected date</td></tr>';
+    return;
+  }
+
+  const headers = Object.keys(rows[0]);
+  headEl.innerHTML = headers.map(h => `<th style="padding: 10px; border: 1px solid rgba(255,255,255,0.1); background: var(--bg-card, #1a1a2e); text-transform: uppercase;">${h}</th>`).join('');
+  
+  bodyEl.innerHTML = rows.map(row => {
+    return `<tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">${headers.map(h => `<td style="padding: 8px; border: 1px solid rgba(255,255,255,0.05);">${row[h] !== undefined && row[h] !== null ? row[h] : ''}</td>`).join('')}</tr>`;
+  }).join('');
 }
 
 // --- Modules ---
