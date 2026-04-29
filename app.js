@@ -336,14 +336,25 @@ function processRawData(response) {
       }
 
       // Status & Remarks
-      if (k === 'machinestatus' || k === 'status' || k === 'st') {
+      if (k === 'machinestatus' || k === 'status' || k === 'st' || k === 'breakdown') {
         const rawS = String(val).toLowerCase();
         const s = rawS.replace(/[^a-z0-9]/g, ''); // Removes spaces, slashes (e.g. b/d -> bd)
         
-        if (s.includes('run')) m.status = 'run';
-        else if (s.includes('break') || s.includes('bd') || rawS.includes('maintenance')) m.status = 'bd';
-        else if (s.includes('idle')) m.status = 'idle';
-        else m.status = 'run'; // Default if empty
+        if (s.includes('run')) {
+          m.status = 'run';
+        } else if (
+          s.includes('break') || 
+          s.includes('bd') || 
+          s.includes('down') || 
+          rawS.includes('maintenance') || 
+          rawS.includes('breakdown')
+        ) {
+          m.status = 'bd';
+        } else if (s.includes('idle')) {
+          m.status = 'idle';
+        } else {
+          m.status = 'run'; // Default if empty or unknown
+        }
       }
       
       if (k.includes('remark') || k.includes('reason') || k.includes('details')) {
@@ -502,6 +513,8 @@ function renderMachineGrid(id, machines) {
     const s = String(m.status).toLowerCase();
     const isBD = s.includes('breakdown') || s === 'bd';
     const sClass = s === 'run' ? 'badge-run' : (isBD ? 'badge-bd' : '');
+    // Display 'Breakdown' text for breakdown status
+    const statusLabel = isBD ? 'Breakdown' : s.toUpperCase();
     const reason = isBD ? (m.remark || m.reason || m.breakdownDetails || '') : '';
 
     return `
@@ -511,6 +524,7 @@ function renderMachineGrid(id, machines) {
             ${m.category ? `<span class="m-cat">${m.category}</span>` : ''}
             ${m.id || m.machineNo || 'N/A'}
           </div>
+          <div class="m-badge ${sClass}">${statusLabel}</div>
           <div class="m-badge ${sClass}">${s.toUpperCase()}</div>
         </div>
         <div class="m-body">
