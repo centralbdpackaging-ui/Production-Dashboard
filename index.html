@@ -1,17 +1,21 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title data-en="Production Dashboard 2026 | Hourly Cutting" data-bn="প্রোডাকশন ড্যাশবোর্ড ২০২৬ | আওয়ারলি কাটিং">Production Dashboard 2026 | Hourly Cutting</title>
+  <title data-en="Production Dashboard 2026 | Hourly Cutting" data-bn="প্রোডাকশন ড্যাশবোর্ড ২০২৬ | আওয়ারলি কাটিং">
+    Production Dashboard 2026 | Hourly Cutting</title>
   <link rel="stylesheet" href="styles.css">
 </head>
+
 <body>
   <div id="app-shell">
     <div id="content-wrapper">
       <header>
         <div class="header-left">
-          <div class="logo" data-en="HOURLY CUTTING DASHBOARD" data-bn="আওয়ারলি কাটিং ড্যাশবোর্ড">HOURLY CUTTING DASHBOARD</div>
+          <div class="logo" data-en="HOURLY CUTTING DASHBOARD" data-bn="আওয়ারলি কাটিং ড্যাশবোর্ড">HOURLY CUTTING
+            DASHBOARD</div>
         </div>
 
         <div class="header-center">
@@ -39,8 +43,9 @@
         <div class="slide-container">
           <!-- Slide 0: OVERALL SUMMARY -->
           <section class="slide active" id="slide-0">
-            <div class="slide-title-banner" data-en="OVERALL CUTTING SUMMARY" data-bn="সার্বিক কাটিং সারসংক্ষেপ">OVERALL CUTTING SUMMARY</div>
-            
+            <div class="slide-title-banner" data-en="OVERALL CUTTING SUMMARY" data-bn="সার্বিক কাটিং সারসংক্ষেপ">OVERALL
+              CUTTING SUMMARY</div>
+
             <div class="summary-kpi-grid">
               <div class="summary-kpi-card">
                 <div class="kpi-lbl" data-en="TOTAL TARGET" data-bn="মোট লক্ষ্যমাত্রা">TOTAL TARGET</div>
@@ -52,7 +57,8 @@
               </div>
               <div class="summary-kpi-card">
                 <div class="kpi-lbl" data-en="RUNNING MACHINES" data-bn="চলমান মেশিন">RUNNING MACHINES</div>
-                <div class="kpi-val" id="sum-running-count">0 <span style="font-size: 20px; color: var(--text-muted);">/ 24</span></div>
+                <div class="kpi-val" id="sum-running-count">0 <span style="font-size: 20px; color: var(--text-muted);">/
+                    24</span></div>
               </div>
               <div class="summary-kpi-card">
                 <div class="kpi-lbl" data-en="TOTAL ACHIEVEMENT" data-bn="মোট অর্জন">TOTAL ACHIEVEMENT</div>
@@ -60,59 +66,108 @@
               </div>
             </div>
 
+
             <div class="summary-sections-grid">
               <!-- Side Seal Summary -->
               <div class="section-card">
                 <div class="section-title" data-en="SIDE SEAL" data-bn="সাইড সিল">SIDE SEAL</div>
-                <div class="metric-row"><span class="metric-lbl" data-en="Target" data-bn="লক্ষ্যমাত্রা">Target</span><span class="metric-val" id="ss-sum-target">0</span></div>
-                <div class="metric-row"><span class="metric-lbl" data-en="Production" data-bn="উৎপাদন">Production</span><span class="metric-val" id="ss-sum-prod">0</span></div>
-                <div class="metric-row"><span class="metric-lbl" data-en="Achievement" data-bn="অর্জিত">Achievement</span><span class="metric-val yellow" id="ss-sum-pct">0%</span></div>
-                <div class="metric-row"><span class="metric-lbl" data-en="Remaining Balance Qty" data-bn="অবশিষ্ট পরিমাণ">Remaining Balance Qty</span><span class="metric-val" id="ss-sum-rem">0</span></div>
+                <div class="metric-row"><span class="metric-lbl" data-en="Target"
+                    data-bn="লক্ষ্যমাত্রা">Target</span><span class="metric-val" id="ss-sum-target">0</span></div>
+                <div class="metric-row"><span class="metric-lbl" data-en="Production"
+                    data-bn="উৎপাদন">Production</span><span class="metric-val" id="ss-sum-prod">0</span></div>
+                <div class="metric-row"><span class="metric-lbl" data-en="Achievement"
+                    data-bn="অর্জিত">Achievement</span><span class="metric-val yellow" id="ss-sum-pct">0%</span></div>
+                <div class="metric-row"><span class="metric-lbl" data-en="Remaining Balance Qty"
+                    data-bn="অবশিষ্ট পরিমাণ">Remaining Balance Qty</span><span class="metric-val"
+                    id="ss-sum-rem">0</span></div>
                 <div class="mini-stats">
-                  <div class="mini-box"><span class="mini-val green" id="ss-run-count">0</span><span class="mini-lbl" data-en="Running" data-bn="চলমান">Running</span></div>
-                  <div class="mini-box"><span class="mini-val yellow" id="ss-idle-count">0</span><span class="mini-lbl" data-en="Idle" data-bn="আইডেল">Idle</span></div>
-                  <div class="mini-box"><span class="mini-val red" id="ss-bd-count">0</span><span class="mini-lbl" data-en="Breakdown" data-bn="ব্রেকডাউন">Breakdown</span></div>
+                  <div class="mini-box"><span class="mini-val green" id="ss-run-count">0</span><span class="mini-lbl"
+                      data-en="Running" data-bn="চলমান">Running</span></div>
+                  <div class="mini-box"><span class="mini-val yellow" id="ss-idle-count">0</span><span class="mini-lbl"
+                      data-en="Idle" data-bn="আইডেল">Idle</span></div>
+                  <div class="mini-box"><span class="mini-val red" id="ss-bd-count">0</span><span class="mini-lbl"
+                      data-en="Breakdown" data-bn="ব্রেকডাউন">Breakdown</span></div>
                 </div>
               </div>
 
               <!-- Bottom Summary -->
               <div class="section-card">
                 <div class="section-title">BOTTOM</div>
-                <div class="metric-row"><span class="metric-lbl">Target</span><span class="metric-val" id="bt-sum-target">0</span></div>
-                <div class="metric-row"><span class="metric-lbl">Production</span><span class="metric-val" id="bt-sum-prod">0</span></div>
-                <div class="metric-row"><span class="metric-lbl">Achievement</span><span class="metric-val yellow" id="bt-sum-pct">0%</span></div>
-                <div class="metric-row"><span class="metric-lbl">Remaining Balance Qty</span><span class="metric-val" id="bt-sum-rem">0</span></div>
+                <div class="metric-row"><span class="metric-lbl">Target</span><span class="metric-val"
+                    id="bt-sum-target">0</span></div>
+                <div class="metric-row"><span class="metric-lbl">Production</span><span class="metric-val"
+                    id="bt-sum-prod">0</span></div>
+                <div class="metric-row"><span class="metric-lbl">Achievement</span><span class="metric-val yellow"
+                    id="bt-sum-pct">0%</span></div>
+                <div class="metric-row"><span class="metric-lbl">Remaining Balance Qty</span><span class="metric-val"
+                    id="bt-sum-rem">0</span></div>
                 <div class="mini-stats">
-                  <div class="mini-box"><span class="mini-val green" id="bt-run-count">0</span><span class="mini-lbl">Running</span></div>
-                  <div class="mini-box"><span class="mini-val yellow" id="bt-idle-count">0</span><span class="mini-lbl">Idle</span></div>
-                  <div class="mini-box"><span class="mini-val red" id="bt-bd-count">0</span><span class="mini-lbl">Breakdown</span></div>
+                  <div class="mini-box"><span class="mini-val green" id="bt-run-count">0</span><span
+                      class="mini-lbl">Running</span></div>
+                  <div class="mini-box"><span class="mini-val yellow" id="bt-idle-count">0</span><span
+                      class="mini-lbl">Idle</span></div>
+                  <div class="mini-box"><span class="mini-val red" id="bt-bd-count">0</span><span
+                      class="mini-lbl">Breakdown</span></div>
                 </div>
               </div>
 
               <!-- Zip Lock Summary -->
               <div class="section-card">
                 <div class="section-title">ZIP LOCK</div>
-                <div class="metric-row"><span class="metric-lbl">Target</span><span class="metric-val" id="zl-sum-target">0</span></div>
-                <div class="metric-row"><span class="metric-lbl">Production</span><span class="metric-val" id="zl-sum-prod">0</span></div>
-                <div class="metric-row"><span class="metric-lbl">Achievement</span><span class="metric-val yellow" id="zl-sum-pct">0%</span></div>
-                <div class="metric-row"><span class="metric-lbl">Remaining Balance Qty</span><span class="metric-val" id="zl-sum-rem">0</span></div>
+                <div class="metric-row"><span class="metric-lbl">Target</span><span class="metric-val"
+                    id="zl-sum-target">0</span></div>
+                <div class="metric-row"><span class="metric-lbl">Production</span><span class="metric-val"
+                    id="zl-sum-prod">0</span></div>
+                <div class="metric-row"><span class="metric-lbl">Achievement</span><span class="metric-val yellow"
+                    id="zl-sum-pct">0%</span></div>
+                <div class="metric-row"><span class="metric-lbl">Remaining Balance Qty</span><span class="metric-val"
+                    id="zl-sum-rem">0</span></div>
                 <div class="mini-stats">
-                  <div class="mini-box"><span class="mini-val green" id="zl-run-count">0</span><span class="mini-lbl">Running</span></div>
-                  <div class="mini-box"><span class="mini-val yellow" id="zl-idle-count">0</span><span class="mini-lbl">Idle</span></div>
-                  <div class="mini-box"><span class="mini-val red" id="zl-bd-count">0</span><span class="mini-lbl">Breakdown</span></div>
+                  <div class="mini-box"><span class="mini-val green" id="zl-run-count">0</span><span
+                      class="mini-lbl">Running</span></div>
+                  <div class="mini-box"><span class="mini-val yellow" id="zl-idle-count">0</span><span
+                      class="mini-lbl">Idle</span></div>
+                  <div class="mini-box"><span class="mini-val red" id="zl-bd-count">0</span><span
+                      class="mini-lbl">Breakdown</span></div>
                 </div>
               </div>
             </div>
           </section>
 
           <!-- Section Slides -->
-          <section class="slide" id="slide-1"><div class="slide-title-banner" data-en="SIDE SEAL MACHINES" data-bn="সাইড সিল মেশিনসমূহ">SIDE SEAL MACHINES</div><div class="machine-grid" id="ss-grid"></div></section>
-          <section class="slide" id="slide-2"><div class="slide-title-banner" data-en="BOTTOM MACHINES" data-bn="বটম মেশিনসমূহ">BOTTOM MACHINES</div><div class="machine-grid" id="bt-grid"></div></section>
-          <section class="slide" id="slide-3"><div class="slide-title-banner" data-en="ZIP LOCK MACHINES" data-bn="জিপ লক মেশিনসমূহ">ZIP LOCK MACHINES</div><div class="machine-grid" id="zl-grid"></div></section>
-          <section class="slide" id="slide-4"><div class="slide-title-banner" data-en="MACHINE BREAKDOWN DETAILS" data-bn="মেশিন ব্রেকডাউন বিস্তারিত">MACHINE BREAKDOWN DETAILS</div><div class="machine-grid" id="bd-grid"></div></section>
-          <section class="slide" id="slide-5"><div class="slide-title-banner" data-en="MASTER DATA VIEW" data-bn="মাস্টার ডাটা ভিউ">MASTER DATA VIEW</div><div class="table-container" style="overflow:auto; max-height:80vh; padding:20px;"><table class="master-table" id="master-data-table" style="width: 100%; border-collapse: collapse; color: white;"><thead><tr id="master-data-head"></tr></thead><tbody id="master-data-body"></tbody></table></div></section>
+          <section class="slide" id="slide-1">
+            <div class="slide-title-banner" data-en="SIDE SEAL MACHINES" data-bn="সাইড সিল মেশিনসমূহ">SIDE SEAL MACHINES
+            </div>
+            <div class="machine-grid" id="ss-grid"></div>
+          </section>
+          <section class="slide" id="slide-2">
+            <div class="slide-title-banner" data-en="BOTTOM MACHINES" data-bn="বটম মেশিনসমূহ">BOTTOM MACHINES</div>
+            <div class="machine-grid" id="bt-grid"></div>
+          </section>
+          <section class="slide" id="slide-3">
+            <div class="slide-title-banner" data-en="ZIP LOCK MACHINES" data-bn="জিপ লক মেশিনসমূহ">ZIP LOCK MACHINES
+            </div>
+            <div class="machine-grid" id="zl-grid"></div>
+          </section>
+          <section class="slide" id="slide-4">
+            <div class="slide-title-banner" data-en="MACHINE BREAKDOWN DETAILS" data-bn="মেশিন ব্রেকডাউন বিস্তারিত">
+              MACHINE BREAKDOWN DETAILS</div>
+            <div class="machine-grid" id="bd-grid"></div>
+          </section>
+          <section class="slide" id="slide-5">
+            <div class="slide-title-banner" data-en="MASTER DATA VIEW" data-bn="মাস্টার ডাটা ভিউ">MASTER DATA VIEW</div>
+            <div class="table-container" style="overflow:auto; max-height:80vh; padding:20px;">
+              <table class="master-table" id="master-data-table"
+                style="width: 100%; border-collapse: collapse; color: white;">
+                <thead>
+                  <tr id="master-data-head"></tr>
+                </thead>
+                <tbody id="master-data-body"></tbody>
+              </table>
+            </div>
+          </section>
         </div>
-        
+
         <!-- Navigation Arrows -->
         <button id="prevSlideBtn" class="nav-arrow left" title="Previous Slide">❮</button>
         <button id="nextSlideBtn" class="nav-arrow right" title="Next Slide">❯</button>
@@ -120,7 +175,9 @@
 
       <footer>
         <div class="alert-btn" data-en="ALERT" data-bn="সতর্কতা">ALERT</div>
-        <div class="ticker-wrap"><div class="ticker-content" id="tickerMsg">✔ All machines are running within normal parameters.</div></div>
+        <div class="ticker-wrap">
+          <div class="ticker-content" id="tickerMsg">✔ All machines are running within normal parameters.</div>
+        </div>
       </footer>
     </div>
 
@@ -128,19 +185,26 @@
     <aside id="settingsModal" class="side-panel">
       <div class="modal-box">
         <div class="modal-header">
-          <h3 style="color:var(--accent-blue);" data-en="DASHBOARD CONTROLLER" data-bn="ড্যাশবোর্ড কন্ট্রোলার">DASHBOARD CONTROLLER</h3>
-          <button id="closeModalBtn" style="background:none; border:none; color:white; font-size:24px; cursor:pointer;">&times;</button>
+          <h3 style="color:var(--accent-blue);" data-en="DASHBOARD CONTROLLER" data-bn="ড্যাশবোর্ড কন্ট্রোলার">DASHBOARD
+            CONTROLLER</h3>
+          <button id="closeModalBtn"
+            style="background:none; border:none; color:white; font-size:24px; cursor:pointer;">&times;</button>
         </div>
         <div class="modal-body">
           <div class="control-btns">
-            <button class="ctrl-btn" data-slide="0" data-en="Overall Summary" data-bn="সার্বিক সারসংক্ষেপ">Overall Summary</button>
-            <button class="ctrl-btn" data-slide="1" data-en="Side Seal Machines" data-bn="সাইড সিল মেশিন">Side Seal Machines</button>
-            <button class="ctrl-btn" data-slide="2" data-en="Bottom Machines" data-bn="বটম মেশিন">Bottom Machines</button>
-            <button class="ctrl-btn" data-slide="3" data-en="Zip Lock Machines" data-bn="জিপ লক মেশিন">Zip Lock Machines</button>
-            <button class="ctrl-btn" data-slide="4" data-en="Breakdown Details" data-bn="ব্রেকডাউন বিস্তারিত">Breakdown Details</button>
+            <button class="ctrl-btn" data-slide="0" data-en="Overall Summary" data-bn="সার্বিক সারসংক্ষেপ">Overall
+              Summary</button>
+            <button class="ctrl-btn" data-slide="1" data-en="Side Seal Machines" data-bn="সাইড সিল মেশিন">Side Seal
+              Machines</button>
+            <button class="ctrl-btn" data-slide="2" data-en="Bottom Machines" data-bn="বটম মেশিন">Bottom
+              Machines</button>
+            <button class="ctrl-btn" data-slide="3" data-en="Zip Lock Machines" data-bn="জিপ লক মেশিন">Zip Lock
+              Machines</button>
+            <button class="ctrl-btn" data-slide="4" data-en="Breakdown Details" data-bn="ব্রেকডাউন বিস্তারিত">Breakdown
+              Details</button>
             <button class="ctrl-btn" data-slide="5" data-en="Master Data" data-bn="মাস্টার ডাটা">Master Data</button>
           </div>
-          
+
           <div class="settings-grid">
             <div class="setting-item">
               <label data-en="Language" data-bn="ভাষা">Language</label>
@@ -156,13 +220,16 @@
             </div>
             <div class="setting-item" style="flex-direction:row; align-items:center; gap:10px;">
               <input type="checkbox" id="autoSlideToggle" checked style="width:18px; height:18px;">
-              <label for="autoSlideToggle" style="font-weight:bold; cursor:pointer;" data-en="Enable Auto-Slide" data-bn="অটো-স্লাইড চালু করুন">Enable Auto-Slide</label>
+              <label for="autoSlideToggle" style="font-weight:bold; cursor:pointer;" data-en="Enable Auto-Slide"
+                data-bn="অটো-স্লাইড চালু করুন">Enable Auto-Slide</label>
             </div>
           </div>
 
           <div class="config-actions">
-            <button id="exportConfigBtn" class="action-btn" data-en="💾 Export Config" data-bn="💾 কনফিগ এক্সপোর্ট">💾 Export Config</button>
-            <button id="importConfigBtn" class="action-btn" data-en="📂 Import Config" data-bn="📂 কনফিগ ইমপোর্ট">📂 Import Config</button>
+            <button id="exportConfigBtn" class="action-btn" data-en="💾 Export Config" data-bn="💾 কনফিগ এক্সপোর্ট">💾
+              Export Config</button>
+            <button id="importConfigBtn" class="action-btn" data-en="📂 Import Config" data-bn="📂 কনফিগ ইমপোর্ট">📂
+              Import Config</button>
             <input type="file" id="configFile" style="display:none;" accept=".json">
           </div>
         </div>
@@ -185,4 +252,5 @@
 
   <script src="app.js"></script>
 </body>
+
 </html>

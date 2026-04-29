@@ -1,6 +1,6 @@
 // --- Configuration & State ---
 const CONFIG = {
-  SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbxHaqM2GagGm8ZcCQsuF_t2LQLIcPh5GqE3Orpv_F3vbYTlfIX63UDxRwM4NcOHkTJ8/exec',
+  SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbxIewqsIP4ibjYe_AmOqbVcccFm_hnQOD2T2l4a1gf8ghHAqQupFFwss3T73ZJuQTSM/exec',
   REFRESH_INTERVAL: 30000,
   DEFAULT_LANGUAGE: 'en',
   DEFAULT_ZOOM: 1.0
@@ -16,13 +16,14 @@ const State = {
   selectedShift: 'Day',
   language: localStorage.getItem('dash_lang') || CONFIG.DEFAULT_LANGUAGE,
   zoom: parseFloat(localStorage.getItem('dash_zoom')) || CONFIG.DEFAULT_ZOOM,
-  isPaused: false
+  isPaused: false,
+  showAll: false
 };
 
 // --- Initializer ---
 function init() {
   State.slides = document.querySelectorAll('.slide');
-  
+
   // Auto-detect Shift based on time (Day: 08:00 - 20:00, Night: rest)
   const hour = new Date().getHours();
   if (hour >= 8 && hour < 20) {
@@ -30,15 +31,15 @@ function init() {
   } else {
     State.selectedShift = 'Night';
   }
-  
+
   setupEventListeners();
   applyLanguage();
   applyZoom();
   syncSettingsUI();
-  
+
   updateClock();
   setInterval(updateClock, 1000);
-  
+
   loadData();
   startSlideTimer();
   setInterval(loadData, CONFIG.REFRESH_INTERVAL);
@@ -67,7 +68,7 @@ function setupEventListeners() {
   closeBtn?.addEventListener('click', () => {
     document.body.classList.remove('settings-open');
   });
-  
+
   autoSlideToggle?.addEventListener('change', (e) => {
     if (e.target.checked) startSlideTimer();
     else stopSlideTimer();
@@ -166,7 +167,7 @@ function syncSettingsUI() {
   if (zoomRange) zoomRange.value = State.zoom;
   if (zoomVal) zoomVal.innerText = `${Math.round(State.zoom * 100)}%`;
   if (autoSlideToggle) autoSlideToggle.checked = (State.timer !== null);
-  
+
   // Highlighting is handled by CSS when side panel is open, but we still update the checked state
 }
 
@@ -191,7 +192,7 @@ function goToSlide(index) {
   State.slides[State.currentSlide].classList.remove('active');
   State.currentSlide = index;
   State.slides[State.currentSlide].classList.add('active');
-  
+
   document.querySelectorAll('.ctrl-btn').forEach(btn => {
     btn.classList.toggle('active-view', parseInt(btn.dataset.slide) === index);
   });
@@ -224,14 +225,14 @@ function loadData() {
   const handleError = (err) => {
     console.warn('Data Load Warning:', err);
     showLoading(false);
-    
+
     // Only show the blocking error overlay if we have absolutely no data to show
     // "Failed to fetch" is usually a CORS issue in local development
     if (!State.data) {
       console.log('No data available, falling back to mock data...');
       State.data = getMockData();
       renderAllSlides();
-      
+
       // Optional: show a small toast instead of a blocking overlay
       console.warn('Dashboard is running with Mock Data due to connection issues.');
     } else if (err.message && !err.message.includes('fetch')) {
@@ -252,7 +253,8 @@ function loadData() {
       .withFailureHandler(handleError)
       .getDashboardData({ date: State.selectedDate, shift: State.selectedShift });
   } else {
-    fetch(`${CONFIG.SCRIPT_URL}?date=${State.selectedDate}&shift=${State.selectedShift}`)
+    // Fetch from Master Record sheet
+    fetch(`${CONFIG.SCRIPT_URL}?sheet=Master Record&date=${State.selectedDate}&shift=${State.selectedShift}`)
       .then(res => res.json())
       .then(data => {
         showLoading(false);
@@ -270,17 +272,18 @@ function loadData() {
  */
 function processRawData(response) {
   if (!response || !response.rawData) return response;
-  
+
   const rawRows = response.rawData;
   const processed = {
     machines: { "Side Seal": [], "Bottom": [], "Zip Lock": [] },
     debug: response.debug,
     lastUpdated: response.lastUpdated,
-    rawFiltered: []
+    rawFiltered: [],
+    rawAll: rawRows // Store everything for the Master view
   };
 
   let currentCat = "Side Seal";
-  
+
   rawRows.forEach(row => {
     let m = { id: '', prod: 0, target: 0, status: 'run', remark: '', category: '' };
     let rowDate = "";
@@ -289,18 +292,41 @@ function processRawData(response) {
     Object.keys(row).forEach(key => {
       const k = key.toLowerCase().replace(/\s+/g, '');
       const val = row[key];
-      
-      // Date identification
+
+      // Date identification with Local Timezone Fix
       if (k === 'date') {
-        if (val instanceof Date) rowDate = val.toISOString().split('T')[0];
-        else rowDate = String(val).split('T')[0];
+        if (typeof val === 'string' && val.includes('T')) {
+          // Fix for ISO strings (e.g., 2026-04-28T18:00:00.000Z to 2026-04-29)
+          const d = new Date(val);
+          if (!isNaN(d.getTime())) {
+            const year = d.getFullYear();
+            const month = String(d.getMonth() + 1).padStart(2, '0');
+            const day = String(d.getDate()).padStart(2, '0');
+            rowDate = `${year}-${month}-${day}`;
+          } else {
+            rowDate = val.split('T')[0];
+          }
+        } else if (val instanceof Date) {
+          const year = val.getFullYear();
+          const month = String(val.getMonth() + 1).padStart(2, '0');
+          const day = String(val.getDate()).padStart(2, '0');
+          rowDate = `${year}-${month}-${day}`;
+        } else {
+          rowDate = String(val).split('T')[0];
+        }
       }
-      
+
       // Machine Identification
       if (k === 'machineno' || k === 'id' || k === 'no' || k === 'slno' || k === 'machine') {
-        m.id = val;
+        m.id = String(val);
+        // --- 🆕 Add Machine Type based on Machine No ---
+        const idLower = m.id.toUpperCase();
+        if (idLower.includes('SIDE SEAL')) m.category = "SIDE SEAL";
+        else if (idLower.includes('BOTTOM')) m.category = "BOTTOM";
+        else if (idLower.includes('ZIP LOCK')) m.category = "ZIP LOCK";
+        else m.category = "OTHER";
       }
-      
+
       // Production & Target
       if (k.includes('production') || k.includes('prod') || k.includes('output') || k.includes('qty')) {
         m.prod = val;
@@ -308,40 +334,55 @@ function processRawData(response) {
       if (k.includes('target')) {
         m.target = val;
       }
-      
+
       // Status & Remarks
-      if (k.includes('status')) {
-        const s = String(val).toLowerCase().trim();
+      if (k === 'machinestatus' || k === 'status' || k === 'st') {
+        const rawS = String(val).toLowerCase();
+        const s = rawS.replace(/[^a-z0-9]/g, ''); // Removes spaces, slashes (e.g. b/d -> bd)
+        
         if (s.includes('run')) m.status = 'run';
-        else if (s.includes('bd') || s.includes('break')) m.status = 'bd';
+        else if (s.includes('break') || s.includes('bd') || rawS.includes('maintenance')) m.status = 'bd';
         else if (s.includes('idle')) m.status = 'idle';
+        else m.status = 'run'; // Default if empty
       }
+      
       if (k.includes('remark') || k.includes('reason') || k.includes('details')) {
-        m.remark = val;
+        m.remark = String(val);
       }
       if (k === 'category' || k === 'section' || k === 'dept') {
         m.category = val;
       }
     });
 
-    // 2. Date Filtering (Crucial for Master Record)
-    const targetDate = State.selectedDate; // YYYY-MM-DD
-    const isDailyRecord = response.debug && response.debug.sourceUsed === 'Daily Record';
 
-    if (!isDailyRecord && rowDate && targetDate) {
-      const d1 = String(rowDate).replace(/[^0-9]/g, ''); // e.g., 29042026 or 20260429
-      const d2 = String(targetDate).replace(/[^0-9]/g, ''); // 20260429
-      
-      // Smart Comparison: checks for exact match or partial matches (like 290426 in 20260429)
-      const match = (d1 === d2) || 
-                    (d1.includes(d2.substring(2))) || 
-                    (d2.includes(d1)) ||
-                    (d1.endsWith(d2.substring(4)) && d1.startsWith(d2.substring(6,8)));
 
-      if (!match) return;
+    // 2. Date Filtering — Strict Comparison
+    const targetDate = State.selectedDate; // YYYY-MM-DD (Selected in Dashboard)
+
+    // Ensure both rowDate and targetDate exist
+    if (!rowDate || !targetDate) return;
+
+    const clean = (s) => String(s).replace(/[^0-9]/g, '');
+    const d1 = clean(rowDate); // Row Date from Sheet
+    const d2 = clean(targetDate); // Selected Date (YYYYMMDD)
+
+    // Convert DDMMYYYY to YYYYMMDD for comparison if needed
+    let d1_final = d1;
+    if (d1.length === 8 && !d1.startsWith('20')) {
+      // Assume DDMMYYYY -> YYYYMMDD
+      d1_final = d1.substring(4, 8) + d1.substring(2, 4) + d1.substring(0, 2);
     }
 
-    // Keep the raw row for the Master Data table
+    // Strict Match Check
+    const isMatch = (d1 === d2) || (d1_final === d2);
+
+    // IF NOT MATCH, DISCARD ROW
+    if (!isMatch) return;
+
+    // Add Machine Type to the row for Master Data
+    row['Machine Type'] = m.category;
+
+    // Only matching rows reach here
     processed.rawFiltered.push(row);
 
     // 3. Cleanup & Validation
@@ -356,7 +397,7 @@ function processRawData(response) {
 
     // 4. Categorization
     let assignedCat = currentCat;
-    
+
     // Check for Category Switcher Rows (Target/Prod are 0)
     if (tVal === 0 && pVal === 0) {
       if (idStr.includes('SIDE')) { currentCat = "Side Seal"; return; }
@@ -385,7 +426,7 @@ function renderAllSlides() {
   if (!d || !d.machines) return;
 
   const cats = { 'Side Seal': 'ss', 'Bottom': 'bt', 'Zip Lock': 'zl' };
-  let totals = { prod: 0, target: 0, run: 0 };
+  let totals = { prod: 0, target: 0, run: 0, bd: 0 };
   let breakdowns = [];
 
   Object.entries(cats).forEach(([name, prefix]) => {
@@ -396,9 +437,9 @@ function renderAllSlides() {
       const s = String(m.status).toLowerCase();
       const isBD = s.includes('breakdown') || s === 'bd';
       const isIdle = s === 'idle';
-      
+
       if (isBD) breakdowns.push({ ...m, category: name });
-      
+
       return {
         prod: acc.prod + p,
         target: acc.target + t,
@@ -409,7 +450,7 @@ function renderAllSlides() {
     }, { prod: 0, target: 0, run: 0, idle: 0, bd: 0 });
 
     const pct = stats.target > 0 ? Math.round((stats.prod / stats.target) * 100) : 0;
-    
+
     safeSetText(`${prefix}-sum-target`, stats.target.toLocaleString());
     safeSetText(`${prefix}-sum-prod`, stats.prod.toLocaleString());
     safeSetText(`${prefix}-sum-pct`, `${pct}%`);
@@ -417,12 +458,13 @@ function renderAllSlides() {
     safeSetText(`${prefix}-run-count`, stats.run);
     safeSetText(`${prefix}-idle-count`, stats.idle);
     safeSetText(`${prefix}-bd-count`, stats.bd);
-    
+
     renderMachineGrid(`${prefix}-grid`, list);
-    
+
     totals.prod += stats.prod;
     totals.target += stats.target;
     totals.run += stats.run;
+    totals.bd += stats.bd;
   });
 
   // Summary KPI
@@ -436,17 +478,17 @@ function renderAllSlides() {
   // Ticker & Breakdowns
   Ticker.build(Object.values(d.machines).flat());
   renderMachineGrid('bd-grid', breakdowns);
-  
+
   // Render Master Data Table
   renderMasterDataTable(d.rawFiltered || []);
-  
+
   safeSetText('lastUpdated', new Date().toLocaleTimeString());
 }
 
 function renderMachineGrid(id, machines) {
   const el = document.getElementById(id);
   if (!el) return;
-  
+
   if (machines.length === 0 && id === 'bd-grid') {
     el.innerHTML = `<div class="no-bd" data-en="No Machines in Breakdown. All Good!" data-bn="কোন ব্রেকডাউন নেই। সবকিছু ঠিক আছে!">No Machines in Breakdown. All Good!</div>`;
     applyLanguage();
@@ -500,17 +542,42 @@ function renderMasterDataTable(rows) {
 
   if (rows.length === 0) {
     headEl.innerHTML = '';
-    bodyEl.innerHTML = '<tr><td style="padding: 20px; text-align: center;">No data available for selected date</td></tr>';
+    bodyEl.innerHTML = '<tr><td style="padding: 20px; text-align: center;">No data available</td></tr>';
     return;
   }
 
   const headers = Object.keys(rows[0]);
   headEl.innerHTML = headers.map(h => `<th style="padding: 10px; border: 1px solid rgba(255,255,255,0.1); background: var(--bg-card, #1a1a2e); text-transform: uppercase;">${h}</th>`).join('');
-  
+
   bodyEl.innerHTML = rows.map(row => {
     return `<tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">${headers.map(h => `<td style="padding: 8px; border: 1px solid rgba(255,255,255,0.05);">${row[h] !== undefined && row[h] !== null ? row[h] : ''}</td>`).join('')}</tr>`;
   }).join('');
 }
+
+function toggleMasterTableView() {
+  State.showAll = !State.showAll;
+  const btn = document.getElementById('showAllBtn');
+  if (btn) {
+    btn.title = State.showAll ? 'Show Selected Date Data' : 'Show All Data';
+    btn.innerText = State.showAll ? '✕' : '☰';
+  }
+
+  const baseUrl = CONFIG.SCRIPT_URL;
+  const url = State.showAll
+    ? `${baseUrl}?sheet=Master Record`
+    : `${baseUrl}?sheet=Master Record&date=${new Date().toISOString().split('T')[0]}&shift=Day`;
+
+  fetch(url)
+    .then(res => res.json())
+    .then(data => {
+      const rows = data.rawData || [];
+      if (typeof renderMasterDataTable === 'function') {
+        renderMasterDataTable(rows);
+      }
+    })
+    .catch(err => console.error('Failed to load Master Record data:', err));
+}
+
 
 // --- Modules ---
 
@@ -550,10 +617,10 @@ function importConfig(e) {
       if (cfg.zoom) State.zoom = cfg.zoom;
       if (cfg.language) State.language = cfg.language;
       if (cfg.interval) State.interval = cfg.interval;
-      
+
       localStorage.setItem('dash_lang', State.language);
       localStorage.setItem('dash_zoom', State.zoom);
-      
+
       applyLanguage();
       applyZoom();
       syncSettingsUI();
