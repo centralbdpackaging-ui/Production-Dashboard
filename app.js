@@ -279,87 +279,95 @@ function processRawData(response) {
   };
 
   let currentCat = "Side Seal";
+  
   rawRows.forEach(row => {
-    let m = {};
+    let m = { id: '', prod: 0, target: 0, status: 'run', remark: '', category: '' };
     let rowDate = "";
-    let rowShift = "";
 
-    // 1. Identify and match Date/Shift first
+    // 1. Identification & Mapping
     Object.keys(row).forEach(key => {
       const k = key.toLowerCase().replace(/\s+/g, '');
       const val = row[key];
       
+      // Date identification
       if (k === 'date') {
         if (val instanceof Date) rowDate = val.toISOString().split('T')[0];
-        else if (typeof val === 'string') rowDate = val.split('T')[0];
         else rowDate = String(val).split('T')[0];
+      }
+      
+      // Machine Identification
+      if (k === 'machineno' || k === 'id' || k === 'no' || k === 'slno' || k === 'machine') {
+        m.id = val;
+      }
+      
+      // Production & Target
+      if (k.includes('production') || k.includes('prod') || k.includes('output') || k.includes('qty')) {
+        m.prod = val;
+      }
+      if (k.includes('target')) {
+        m.target = val;
+      }
+      
+      // Status & Remarks
+      if (k.includes('status')) {
+        const s = String(val).toLowerCase().trim();
+        if (s.includes('run')) m.status = 'run';
+        else if (s.includes('bd') || s.includes('break')) m.status = 'bd';
+        else if (s.includes('idle')) m.status = 'idle';
+      }
+      if (k.includes('remark') || k.includes('reason') || k.includes('details')) {
+        m.remark = val;
+      }
+      if (k === 'category' || k === 'section' || k === 'dept') {
+        m.category = val;
       }
     });
 
-    // 2. FILTERING: Only filter by date if it's NOT the Daily Record
+    // 2. Date Filtering (Crucial for Master Record)
     const targetDate = State.selectedDate; // YYYY-MM-DD
     const isDailyRecord = response.debug && response.debug.sourceUsed === 'Daily Record';
 
     if (!isDailyRecord && rowDate && targetDate) {
-      const d1 = String(rowDate).toLowerCase().replace(/[^0-9]/g, '');
-      const d2 = String(targetDate).toLowerCase().replace(/[^0-9]/g, '');
-      if (!d1.includes(d2) && !d2.includes(d1)) return;
+      // Clean dates to compare strings
+      const d1 = String(rowDate).replace(/[^0-9]/g, '');
+      const d2 = String(targetDate).replace(/[^0-9]/g, '');
+      
+      // If date is provided but doesn't match, skip
+      if (d1 !== d2 && !d1.includes(d2) && !d2.includes(d1)) return;
     }
-    
-    // Shift filtering REMOVED as per user request. 
-    // We now show all data regardless of shift.
 
-    // 3. Mapping: Strict search for main columns
-    Object.keys(row).forEach(key => {
-      const k = key.toLowerCase().replace(/\s+/g, '');
-      const val = row[key];
-
-      // Exact or very close matches only
-      if (k === 'machineno' || k === 'id' || k === 'no' || k === 'slno') {
-          m.id = val;
-      } else if (k === 'productionquar' || k === 'productionquantity') {
-          m.prod = val;
-      } else if (k === 'target') {
-          m.target = val;
-      } else if (k.includes('status')) {
-        const s = String(val).toLowerCase().trim();
-        if (s === 'run' || s === 'running') m.status = 'run';
-        else if (s === 'breakdown' || s === 'bd') m.status = 'bd';
-        else if (s === 'idle') m.status = 'idle';
-        else m.status = 'run';
-      }
-    });
-
-    // 4. VALIDATION & STATEFUL CATEGORIZATION
+    // 3. Cleanup & Validation
     const idStr = String(m.id || "").toUpperCase().trim();
-    
-    // Clean numbers
-    const pVal = parseFloat(String(m.prod || 0).replace(/[^0-9.]/g, '')) || 0;
-    const tVal = parseFloat(String(m.target || 0).replace(/[^0-9.]/g, '')) || 0;
-    m.prod = pVal;
-    m.target = tVal;
-
-    // Skip summary rows or empty IDs
     if (!idStr || idStr.includes('TOTAL') || idStr.includes('GRAND') || idStr.includes('SUM')) return;
 
-    // Detect Category Switchers (only if no data)
-    if (m.target === 0 && m.prod === 0) {
-      if (idStr.includes('SIDE SEAL')) { currentCat = "Side Seal"; return; }
+    // Convert numbers
+    const tVal = parseFloat(String(m.target || 0).replace(/[^0-9.]/g, '')) || 0;
+    const pVal = parseFloat(String(m.prod || 0).replace(/[^0-9.]/g, '')) || 0;
+    m.target = tVal;
+    m.prod = pVal;
+
+    // 4. Categorization
+    let assignedCat = currentCat;
+    
+    // Check for Category Switcher Rows (Target/Prod are 0)
+    if (tVal === 0 && pVal === 0) {
+      if (idStr.includes('SIDE')) { currentCat = "Side Seal"; return; }
       if (idStr.includes('BOTTOM')) { currentCat = "Bottom"; return; }
-      if (idStr.includes('ZIP LOCK')) { currentCat = "Zip Lock"; return; }
+      if (idStr.includes('ZIP')) { currentCat = "Zip Lock"; return; }
     }
 
-    // Push machine to the active category
-    if (m.id) {
-      if (idStr.includes('SIDE SEAL')) currentCat = "Side Seal";
-      else if (idStr.includes('BOTTOM')) currentCat = "Bottom";
-      else if (idStr.includes('ZIP LOCK')) currentCat = "Zip Lock";
+    // Check for explicit Category column
+    const catCol = String(m.category || "").toUpperCase();
+    if (catCol.includes('SIDE')) assignedCat = "Side Seal";
+    else if (catCol.includes('BOTTOM')) assignedCat = "Bottom";
+    else if (catCol.includes('ZIP')) assignedCat = "Zip Lock";
+    else assignedCat = currentCat;
 
-      processed.machines[currentCat].push(m);
+    if (processed.machines[assignedCat]) {
+      processed.machines[assignedCat].push(m);
     }
   });
 
-  console.log('--- DEBUG: Raw Headers Found ---', rawRows.length > 0 ? Object.keys(rawRows[0]) : 'No Rows');
   console.log('--- DEBUG: Processed Data ---', processed);
   return processed;
 }
