@@ -336,22 +336,15 @@ function processRawData(response) {
       }
 
       // Status & Remarks
-      if (k === 'machinestatus' || k === 'status' || k === 'st' || k === 'breakdown') {
+      if (k === 'machinestatus' || k === 'status' || k === 'st') {
         const rawS = String(val).toLowerCase();
-        const s = rawS.replace(/[^a-z0-9]/g, ''); // Removes spaces, slashes (e.g. b/d -> bd)
         
-        if (s.includes('run')) {
+        if (rawS.includes('run')) {
           m.status = 'run';
-        } else if (
-          s.includes('break') || 
-          s.includes('bd') || 
-          s.includes('down') || 
-          rawS.includes('maintenance') || 
-          rawS.includes('breakdown')
-        ) {
-          m.status = 'bd';
-        } else if (s.includes('idle')) {
+        } else if (rawS.includes('idle')) {
           m.status = 'idle';
+        } else if (rawS.includes('breakdown') || rawS.includes('bd')) {
+          m.status = 'breakdown';
         } else {
           m.status = 'run'; // Default if empty or unknown
         }
@@ -446,7 +439,7 @@ function renderAllSlides() {
       const p = Number(m.prod) || 0;
       const t = Number(m.target) || 0;
       const s = String(m.status).toLowerCase();
-      const isBD = s.includes('breakdown') || s === 'bd';
+      const isBD = s === 'breakdown' || s === 'bd';
       const isIdle = s === 'idle';
 
       if (isBD) breakdowns.push({ ...m, category: name });
@@ -511,10 +504,10 @@ function renderMachineGrid(id, machines) {
     const t = Number(m.target) || 0;
     const pct = t > 0 ? Math.round((p / t) * 100) : 0;
     const s = String(m.status).toLowerCase();
-    const isBD = s.includes('breakdown') || s === 'bd';
+    const isBD = s === 'breakdown' || s === 'bd';
     const sClass = s === 'run' ? 'badge-run' : (isBD ? 'badge-bd' : '');
     // Display 'Breakdown' text for breakdown status
-    const statusLabel = isBD ? 'Breakdown' : s.toUpperCase();
+    const statusLabel = isBD ? 'BREAKDOWN' : s.toUpperCase();
     const reason = isBD ? (m.remark || m.reason || m.breakdownDetails || '') : '';
 
     return `
