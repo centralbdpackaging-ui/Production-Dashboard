@@ -11,7 +11,7 @@ const State = {
   slides: [],
   data: null,
   timer: null,
-  interval: 10000,
+  interval: parseInt(localStorage.getItem('dash_slide_interval')) || 10000,
   selectedDate: new Date().toISOString().split('T')[0],
   selectedShift: 'Day',
   language: localStorage.getItem('dash_lang') || CONFIG.DEFAULT_LANGUAGE,
@@ -90,6 +90,24 @@ function setupEventListeners() {
     localStorage.setItem('dash_lang', State.language);
     applyLanguage();
   });
+
+  // Slide timer speed control
+  const timerRange = document.getElementById('timerRange');
+  const timerVal = document.getElementById('timerVal');
+  if (timerRange) {
+    timerRange.value = State.interval / 1000;
+    if (timerVal) timerVal.textContent = (State.interval / 1000) + 's';
+    timerRange.addEventListener('input', (e) => {
+      State.interval = parseInt(e.target.value) * 1000;
+      localStorage.setItem('dash_slide_interval', State.interval);
+      if (timerVal) timerVal.textContent = e.target.value + 's';
+      // Restart timer with new speed
+      if (State.timer) {
+        stopSlideTimer();
+        startSlideTimer();
+      }
+    });
+  }
 
   zoomRange?.addEventListener('change', (e) => {
     State.zoom = parseFloat(e.target.value);
@@ -510,7 +528,10 @@ function renderAllSlides() {
     safeSetText(`${prefix}-idle-count`, stats.idle);
     safeSetText(`${prefix}-bd-count`, stats.bd);
 
-    renderMachineGrid(`${prefix}-grid`, list);
+    // Sort machines by production (largest to smallest)
+    const sortedList = [...list].sort((a, b) => (Number(b.prod) || 0) - (Number(a.prod) || 0));
+
+    renderMachineGrid(`${prefix}-grid`, sortedList);
 
     totals.prod += stats.prod;
     totals.target += stats.target;
@@ -552,10 +573,14 @@ function renderMachineGrid(id, machines) {
     const pct = t > 0 ? Math.round((p / t) * 100) : 0;
     const s = String(m.status).toLowerCase();
     const isBD = s === 'breakdown' || s === 'bd';
-    const sClass = s === 'run' ? 'badge-run' : (isBD ? 'badge-bd' : '');
-    // Display 'Breakdown' text for breakdown status
+    const sClass = s === 'run' ? 'badge-run' : (isBD ? 'badge-bd' : 'badge-idle');
     const statusLabel = isBD ? 'BREAKDOWN' : s.toUpperCase();
     const reason = isBD ? (m.remark || m.reason || m.breakdownDetails || '') : '';
+
+    // Color coding: Production=blue, Target=white, Achievement=green(>=80)/yellow(50-79)/red(<50)
+    const pctColor = pct >= 80 ? '#22c55e' : pct >= 50 ? '#f59e0b' : '#ef4444';
+    const prodColor = '#38bdf8';   // sky blue
+    const targetColor = '#e2e8f0'; // white/light
 
     return `
       <div class="m-card">
@@ -565,21 +590,20 @@ function renderMachineGrid(id, machines) {
             ${m.id || m.machineNo || 'N/A'}
           </div>
           <div class="m-badge ${sClass}">${statusLabel}</div>
-          <div class="m-badge ${sClass}">${s.toUpperCase()}</div>
         </div>
         <div class="m-body">
           <div class="m-kpi-item">
-            <span class="m-kpi-lbl" data-en="Production" data-bn="উৎপাদন">Production</span>
-            <span class="m-kpi-val" style="color:var(--accent-blue)">${p.toLocaleString()}</span>
+            <span class="m-kpi-lbl" data-en="PRODUCTION" data-bn="উৎপাদন">PRODUCTION</span>
+            <span class="m-kpi-val" style="color:${prodColor}">${p.toLocaleString()}</span>
           </div>
           <div class="m-kpi-item" style="text-align:right">
-            <span class="m-kpi-lbl" data-en="Target" data-bn="লক্ষ্যমাত্রা">Target</span>
-            <span class="m-kpi-val">${t.toLocaleString()}</span>
+            <span class="m-kpi-lbl" data-en="TARGET" data-bn="লক্ষ্যমাত্রা">TARGET</span>
+            <span class="m-kpi-val" style="color:${targetColor}">${t.toLocaleString()}</span>
           </div>
         </div>
-        <div class="m-progress"><div style="width:${pct}%"></div></div>
+        <div class="m-progress"><div style="width:${pct}%; background:${pctColor}"></div></div>
         <div class="m-footer">
-          <span>Eff: ${pct}%</span>
+          <span style="color:${pctColor}; font-weight:bold">Eff: ${pct}%</span>
           <span>${m.lastUpdate || 'Live'}</span>
         </div>
         ${reason ? `<div class="m-reason">Reason: ${reason}</div>` : ''}
