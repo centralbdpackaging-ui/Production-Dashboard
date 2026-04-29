@@ -336,14 +336,21 @@ function processRawData(response) {
       }
 
       // Status & Remarks
-      if (k === 'machinestatus' || k === 'status' || k === 'st') {
+      if (k.includes('status') || k === 'st') {
         const rawS = String(val).toLowerCase();
+        const cleanS = rawS.replace(/[^a-z0-9]/g, ''); // removes spaces, slashes, dashes etc.
         
-        if (rawS.includes('run')) {
+        if (cleanS.includes('run')) {
           m.status = 'run';
-        } else if (rawS.includes('idle')) {
+        } else if (cleanS.includes('idle')) {
           m.status = 'idle';
-        } else if (rawS.includes('breakdown') || rawS.includes('bd')) {
+        } else if (
+          cleanS.includes('break') || 
+          cleanS.includes('bd') || 
+          cleanS.includes('down') || 
+          cleanS.includes('stop') ||
+          rawS.includes('break')
+        ) {
           m.status = 'breakdown';
         } else {
           m.status = 'run'; // Default if empty or unknown
