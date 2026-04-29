@@ -1,6 +1,6 @@
 // --- Configuration & State ---
 const CONFIG = {
-  SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbw0Vi48iT_vIjAMkm0df-fLW6u8-X7kptr1maaJHfp80R6Pw_bS40CEok1nga4Y_4pQ/exec',
+  SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbxHaqM2GagGm8ZcCQsuF_t2LQLIcPh5GqE3Orpv_F3vbYTlfIX63UDxRwM4NcOHkTJ8/exec',
   REFRESH_INTERVAL: 30000,
   DEFAULT_LANGUAGE: 'en',
   DEFAULT_ZOOM: 1.0
