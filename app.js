@@ -12,6 +12,7 @@ const State = {
   data: null,
   timer: null,
   interval: parseInt(localStorage.getItem('dash_slide_interval')) || 10000,
+  tickerSpeed: parseInt(localStorage.getItem('dash_ticker_speed')) || 60,
   selectedDate: new Date().toISOString().split('T')[0],
   selectedShift: 'Day',
   language: localStorage.getItem('dash_lang') || CONFIG.DEFAULT_LANGUAGE,
@@ -101,11 +102,33 @@ function setupEventListeners() {
       State.interval = parseInt(e.target.value) * 1000;
       localStorage.setItem('dash_slide_interval', State.interval);
       if (timerVal) timerVal.textContent = e.target.value + 's';
-      // Restart timer with new speed
       if (State.timer) {
         stopSlideTimer();
         startSlideTimer();
       }
+    });
+  }
+
+  // Ticker (Scroll) speed control
+  const tickerSpeedRange = document.getElementById('tickerSpeedRange');
+  const tickerSpeedVal = document.getElementById('tickerSpeedVal');
+  if (tickerSpeedRange) {
+    tickerSpeedRange.value = State.tickerSpeed;
+    if (tickerSpeedVal) tickerSpeedVal.textContent = State.tickerSpeed + 's';
+    
+    // Apply initial speed
+    document.documentElement.style.setProperty('--ticker-speed', State.tickerSpeed + 's');
+    const tickerContent = document.getElementById('tickerMsg');
+    if (tickerContent) tickerContent.style.animationDuration = State.tickerSpeed + 's';
+
+    tickerSpeedRange.addEventListener('input', (e) => {
+      State.tickerSpeed = parseInt(e.target.value);
+      localStorage.setItem('dash_ticker_speed', State.tickerSpeed);
+      if (tickerSpeedVal) tickerSpeedVal.textContent = State.tickerSpeed + 's';
+      
+      document.documentElement.style.setProperty('--ticker-speed', State.tickerSpeed + 's');
+      const tc = document.getElementById('tickerMsg');
+      if (tc) tc.style.animationDuration = State.tickerSpeed + 's';
     });
   }
 
@@ -577,8 +600,8 @@ function renderMachineGrid(id, machines) {
     const statusLabel = isBD ? 'BREAKDOWN' : s.toUpperCase();
     const reason = isBD ? (m.remark || m.reason || m.breakdownDetails || '') : '';
 
-    // Color coding: Production=blue, Target=white, Achievement=green(>=80)/yellow(50-79)/red(<50)
-    const pctColor = pct >= 80 ? '#22c55e' : pct >= 50 ? '#f59e0b' : '#ef4444';
+    // Color coding: Production=blue, Target=white, Achievement=green(>=80)/yellow(50-79)/orange(<50) [REMOVED RED]
+    const pctColor = pct >= 80 ? '#22c55e' : pct >= 50 ? '#f59e0b' : '#fb923c';
     const prodColor = '#38bdf8';   // sky blue
     const targetColor = '#e2e8f0'; // white/light
 
@@ -663,13 +686,23 @@ const Ticker = {
   build(machines) {
     const el = document.getElementById('tickerMsg');
     if (!el) return;
-    const parts = machines.map(m => {
+    
+    // Sort machines for ticker by production
+    const sorted = [...machines].sort((a, b) => (Number(b.prod) || 0) - (Number(a.prod) || 0));
+
+    const parts = sorted.map(m => {
       const p = Number(m.prod) || 0;
       const t = Number(m.target) || 0;
       const pct = t > 0 ? Math.round((p / t) * 100) : 0;
-      return `[${m.id || m.machineNo}] Target: ${t.toLocaleString()} | Prod: ${p.toLocaleString()} (${pct}%)`;
+      
+      // 4 Colors for ticker: Name=White, Target=Blue, Prod=Yellow, Eff=Green
+      return `<span style="color:#ffffff">[${m.id || m.machineNo}]</span> <span style="color:#38bdf8">Target: ${t.toLocaleString()}</span> | <span style="color:#f59e0b">Prod: ${p.toLocaleString()}</span> <span style="color:#22c55e">(${pct}%)</span>`;
     });
-    el.innerText = ' • ' + parts.join('  •  ') + ' • ';
+    
+    el.innerHTML = '&nbsp;&nbsp;&bull;&nbsp;&nbsp;' + parts.join('&nbsp;&nbsp;&bull;&nbsp;&nbsp;') + '&nbsp;&nbsp;&bull;&nbsp;&nbsp;';
+    
+    // Ensure speed is applied
+    el.style.animationDuration = State.tickerSpeed + 's';
   }
 };
 
