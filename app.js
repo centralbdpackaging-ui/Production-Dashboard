@@ -328,12 +328,16 @@ function processRawData(response) {
     const isDailyRecord = response.debug && response.debug.sourceUsed === 'Daily Record';
 
     if (!isDailyRecord && rowDate && targetDate) {
-      // Clean dates to compare strings
-      const d1 = String(rowDate).replace(/[^0-9]/g, '');
-      const d2 = String(targetDate).replace(/[^0-9]/g, '');
+      const d1 = String(rowDate).replace(/[^0-9]/g, ''); // e.g., 29042026 or 20260429
+      const d2 = String(targetDate).replace(/[^0-9]/g, ''); // 20260429
       
-      // If date is provided but doesn't match, skip
-      if (d1 !== d2 && !d1.includes(d2) && !d2.includes(d1)) return;
+      // Smart Comparison: checks for exact match or partial matches (like 290426 in 20260429)
+      const match = (d1 === d2) || 
+                    (d1.includes(d2.substring(2))) || 
+                    (d2.includes(d1)) ||
+                    (d1.endsWith(d2.substring(4)) && d1.startsWith(d2.substring(6,8)));
+
+      if (!match) return;
     }
 
     // 3. Cleanup & Validation
