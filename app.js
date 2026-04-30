@@ -587,8 +587,8 @@ function renderAllSlides() {
   safeSetText('sum-total-target', totals.target.toLocaleString());
   safeSetText('sum-total-prod', totals.prod.toLocaleString());
   safeSetText('sum-total-pct', `${totalPct}%`);
-  const runEl = document.getElementById('sum-running-count');
-  if (runEl) runEl.innerHTML = `${totals.run} <span style="font-size: 20px; color: var(--text-muted);">/ 24</span>`;
+  const totalMachineCount = Object.values(d.machines).flat().length;
+  if (runEl) runEl.innerHTML = `${totals.run} <span style="font-size: 20px; color: var(--text-muted);">/ ${totalMachineCount}</span>`;
 
   // Ticker & Breakdowns
   Ticker.build(Object.values(d.machines).flat());
@@ -629,7 +629,12 @@ function renderMachineGrid(id, machines) {
       if (isBD) statusLabel = 'BREAKDOWN';
     }
     const badgeBlink = !isRun ? 'blink' : '';
-    const badgeStyle = !isRun ? 'background: var(--red) !important; color: white !important; border-color: var(--red) !important;' : '';
+    let badgeStyle = '';
+    if (isBD) {
+      badgeStyle = 'background: var(--red) !important; color: white !important; border-color: var(--red) !important;';
+    } else if (s.includes('idle')) {
+      badgeStyle = 'background: var(--yellow) !important; color: white !important; border-color: var(--yellow) !important;';
+    }
 
     const reason = m.reason || m.remark || '';
 
@@ -642,7 +647,7 @@ function renderMachineGrid(id, machines) {
       <div class="m-card">
         <div class="m-header">
           <div class="m-title">
-            ${m.id || m.machineNo || 'N/A'}
+            ${m.id || m.machineNo || 'N/A'} ${isRun ? '<span class="blink" style="color:var(--green); font-size:24px; vertical-align:middle; line-height:1">.</span>' : ''}
           </div>
           <div class="m-badge ${sClass} ${badgeBlink}" style="${badgeStyle}">${statusLabel}</div>
         </div>
@@ -658,9 +663,8 @@ function renderMachineGrid(id, machines) {
         </div>
         <div class="m-progress"><div style="width:${pct}%; background:${pctColor}"></div></div>
         <div class="m-footer" style="align-items: center;">
-          <span class="blink" style="color:${pctColor}; font-weight:bold"><span data-en="Ach:" data-bn="অর্জিত:">Ach:</span> ${pct}%</span>
+          <span style="color:${pctColor}; font-weight:bold"><span data-en="Ach:" data-bn="অর্জিত:">Ach:</span> ${pct}%</span>
           ${!isRun && reason ? `<span class="blink" style="font-size: 12px; color: var(--red); max-width: 50%; text-align: center; line-height: 1.1;">${reason}</span>` : ''}
-          <span class="blink" style="color:var(--green)">${m.lastUpdate || (State.lang === 'bn' ? 'লাইভ' : 'Live')}</span>
         </div>
       </div>
     `;
