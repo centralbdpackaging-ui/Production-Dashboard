@@ -448,7 +448,7 @@ function processRawData(response) {
   }
 }
       
-      if (k.includes('remark') || k.includes('reason') || k.includes('details') || k.includes('idle')) {
+      if (k.includes('remark') || k.includes('reason') || k.includes('details') || k.includes('idle') || k.includes('breakdowntype')) {
         m.reason = String(val);
       }
       if (k === 'category' || k === 'section' || k === 'dept') {
