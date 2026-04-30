@@ -247,7 +247,17 @@ function goToSlide(index) {
   if (State.slides.length === 0) return;
   State.slides[State.currentSlide].classList.remove('active');
   State.currentSlide = index;
-  State.slides[State.currentSlide].classList.add('active');
+  const currentSlideEl = State.slides[State.currentSlide];
+  currentSlideEl.classList.add('active');
+
+  // Dynamic Title Update
+  const banner = currentSlideEl.querySelector('.slide-title-banner');
+  const dynamicTitle = document.getElementById('dynamicPageTitle');
+  if (banner && dynamicTitle) {
+    dynamicTitle.innerText = banner.innerText;
+    if (banner.hasAttribute('data-en')) dynamicTitle.setAttribute('data-en', banner.getAttribute('data-en'));
+    if (banner.hasAttribute('data-bn')) dynamicTitle.setAttribute('data-bn', banner.getAttribute('data-bn'));
+  }
 
   document.querySelectorAll('.ctrl-btn').forEach(btn => {
     btn.classList.toggle('active-view', parseInt(btn.dataset.slide) === index);
@@ -438,8 +448,8 @@ function processRawData(response) {
   }
 }
       
-      if (k.includes('remark') || k.includes('reason') || k.includes('details')) {
-        m.remark = String(val);
+      if (k.includes('remark') || k.includes('reason') || k.includes('details') || k.includes('idle')) {
+        m.reason = String(val);
       }
       if (k === 'category' || k === 'section' || k === 'dept') {
         m.category = val;
@@ -595,24 +605,29 @@ function renderMachineGrid(id, machines) {
     const t = Number(m.target) || 0;
     const pct = t > 0 ? Math.round((p / t) * 100) : 0;
     const s = String(m.status).toLowerCase();
+    const isRun = s === 'run';
     const isBD = s === 'breakdown' || s === 'bd';
-    const sClass = s === 'run' ? 'badge-run' : (isBD ? 'badge-bd' : 'badge-idle');
+    
+    // Status Badge Logic
+    const sClass = isRun ? 'badge-run' : (isBD ? 'badge-bd' : 'badge-idle');
     const statusLabel = isBD ? 'BREAKDOWN' : s.toUpperCase();
-    const reason = isBD ? (m.remark || m.reason || m.breakdownDetails || '') : '';
+    const badgeBlink = !isRun ? 'blink' : '';
+    const badgeStyle = !isRun ? 'background: var(--red) !important; color: white !important; border-color: var(--red) !important;' : '';
 
-    // Color coding: Production=blue, Target=white, Achievement=green(>=80)/yellow(50-79)/orange(<50) [REMOVED RED]
-    const pctColor = pct >= 80 ? '#22c55e' : pct >= 50 ? '#f59e0b' : '#fb923c';
-    const prodColor = '#38bdf8';   // sky blue
-    const targetColor = '#e2e8f0'; // white/light
+    const reason = m.reason || m.remark || '';
+
+    // Color coding: TARGET=Blue, PRODUCTION=Green, ACHIEVEMENT=Orange/Yellow
+    const pctColor = 'var(--ach-orange)';
+    const prodColor = 'var(--prod-green)';
+    const targetColor = 'var(--target-blue)';
 
     return `
       <div class="m-card">
         <div class="m-header">
           <div class="m-title">
-            ${m.category ? `<span class="m-cat">${m.category}</span>` : ''}
             ${m.id || m.machineNo || 'N/A'}
           </div>
-          <div class="m-badge ${sClass}">${statusLabel}</div>
+          <div class="m-badge ${sClass} ${badgeBlink}" style="${badgeStyle}">${statusLabel}</div>
         </div>
         <div class="m-body">
           <div class="m-kpi-item">
@@ -625,11 +640,11 @@ function renderMachineGrid(id, machines) {
           </div>
         </div>
         <div class="m-progress"><div style="width:${pct}%; background:${pctColor}"></div></div>
-        <div class="m-footer">
-          <span style="color:${pctColor}; font-weight:bold">Eff: ${pct}%</span>
-          <span>${m.lastUpdate || 'Live'}</span>
+        <div class="m-footer" style="align-items: center;">
+          <span class="blink" style="color:${pctColor}; font-weight:bold">Ach: ${pct}%</span>
+          ${!isRun && reason ? `<span class="blink" style="font-size: 12px; color: var(--red); max-width: 50%; text-align: center; line-height: 1.1;">${reason}</span>` : ''}
+          <span class="blink" style="color:var(--green)">${m.lastUpdate || 'Live'}</span>
         </div>
-        ${reason ? `<div class="m-reason">Reason: ${reason}</div>` : ''}
       </div>
     `;
   }).join('');
@@ -651,7 +666,17 @@ function renderMasterDataTable(rows) {
   headEl.innerHTML = headers.map(h => `<th style="padding: 10px; border: 1px solid rgba(255,255,255,0.1); background: var(--bg-card, #1a1a2e); text-transform: uppercase;">${h}</th>`).join('');
 
   bodyEl.innerHTML = rows.map(row => {
-    return `<tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">${headers.map(h => `<td style="padding: 8px; border: 1px solid rgba(255,255,255,0.05);">${row[h] !== undefined && row[h] !== null ? row[h] : ''}</td>`).join('')}</tr>`;
+    return `<tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">${headers.map(h => {
+      const val = row[h] !== undefined && row[h] !== null ? row[h] : '';
+      const header = h.toLowerCase();
+      let style = "";
+      if (header.includes('target')) style = "color:var(--target-blue); font-weight:bold;";
+      else if (header.includes('production') || header.includes('prod') || header.includes('output')) style = "color:var(--prod-green); font-weight:bold;";
+      else if (header.includes('achievement') || header.includes('eff')) style = "color:var(--ach-orange); font-weight:bold;";
+      else if (header.includes('balance') || header.includes('rem')) style = "color:var(--rem-yellow); font-weight:bold;";
+
+      return `<td style="padding: 8px; border: 1px solid rgba(255,255,255,0.05); ${style}">${val}</td>`;
+    }).join('')}</tr>`;
   }).join('');
 }
 
@@ -695,8 +720,8 @@ const Ticker = {
       const t = Number(m.target) || 0;
       const pct = t > 0 ? Math.round((p / t) * 100) : 0;
       
-      // 4 Colors for ticker: Name=White, Target=Blue, Prod=Yellow, Eff=Green
-      return `<span style="color:#ffffff">[${m.id || m.machineNo}]</span> <span style="color:#38bdf8">Target: ${t.toLocaleString()}</span> | <span style="color:#f59e0b">Prod: ${p.toLocaleString()}</span> <span style="color:#22c55e">(${pct}%)</span>`;
+      // Ticker Colors: Name=White, Target=Blue, Prod=Green, Eff=Orange/Yellow
+      return `<span style="color:#ffffff">[${m.id || m.machineNo}]</span> <span style="color:var(--target-blue)">Target: ${t.toLocaleString()}</span> | <span style="color:var(--prod-green)">Prod: ${p.toLocaleString()}</span> <span style="color:var(--ach-orange)">(${pct}%)</span>`;
     });
     
     el.innerHTML = '&nbsp;&nbsp;&bull;&nbsp;&nbsp;' + parts.join('&nbsp;&nbsp;&bull;&nbsp;&nbsp;') + '&nbsp;&nbsp;&bull;&nbsp;&nbsp;';
