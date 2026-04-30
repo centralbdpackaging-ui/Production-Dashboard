@@ -503,11 +503,12 @@ function processRawData(response) {
     // 4. Categorization
     let assignedCat = currentCat;
 
-    // Check for Category Switcher Rows (Target/Prod are 0)
+    // Check for Category Switcher Rows (Only if ID is EXACTLY the category name and Target/Prod are 0)
     if (tVal === 0 && pVal === 0) {
-      if (idStr.includes('SIDE')) { currentCat = "Side Seal"; return; }
-      if (idStr.includes('BOTTOM')) { currentCat = "Bottom"; return; }
-      if (idStr.includes('ZIP')) { currentCat = "Zip Lock"; return; }
+      const cleanId = idStr.replace(/\s+/g, '');
+      if (cleanId === 'SIDESEAL' || cleanId === 'SIDESEALSECTION') { currentCat = "Side Seal"; return; }
+      if (cleanId === 'BOTTOM' || cleanId === 'BOTTOMSECTION') { currentCat = "Bottom"; return; }
+      if (cleanId === 'ZIPLOCK' || cleanId === 'ZIPLOCKSECTION') { currentCat = "Zip Lock"; return; }
     }
 
     // Check for explicit Category column
@@ -588,6 +589,7 @@ function renderAllSlides() {
   safeSetText('sum-total-prod', totals.prod.toLocaleString());
   safeSetText('sum-total-pct', `${totalPct}%`);
   const totalMachineCount = Object.values(d.machines).flat().length;
+  const runEl = document.getElementById('sum-running-count');
   if (runEl) runEl.innerHTML = `${totals.run} <span style="font-size: 20px; color: var(--text-muted);">/ ${totalMachineCount}</span>`;
 
   // Ticker & Breakdowns
