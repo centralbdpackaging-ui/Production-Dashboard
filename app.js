@@ -454,6 +454,9 @@ function processRawData(response) {
       if (k === 'category' || k === 'section' || k === 'dept') {
         m.category = val;
       }
+      if (k.includes('lastupdatetime')) {
+        processed.lastUpdateFromData = val;
+      }
     });
 
 
@@ -594,7 +597,7 @@ function renderAllSlides() {
   // Render Master Data Table
   renderMasterDataTable(d.rawFiltered || []);
 
-  safeSetText('lastUpdated', new Date().toLocaleTimeString());
+  safeSetText('lastUpdated', d.lastUpdateFromData || new Date().toLocaleTimeString());
 }
 
 function renderMachineGrid(id, machines) {
