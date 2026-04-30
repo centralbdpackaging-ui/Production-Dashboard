@@ -454,8 +454,19 @@ function processRawData(response) {
       if (k === 'category' || k === 'section' || k === 'dept') {
         m.category = val;
       }
-      if (k.includes('lastupdatetime')) {
-        processed.lastUpdateFromData = val;
+      if (k.includes('lastupdatetime') && val) {
+        let timeValue = val;
+        // If it's a string that looks like a date/time, try to parse it
+        if (typeof val === 'string' && (val.includes(':') || val.includes('-') || val.includes('/'))) {
+          const d = new Date(val);
+          if (!isNaN(d.getTime())) timeValue = d;
+        }
+        
+        if (timeValue instanceof Date) {
+          processed.lastUpdateFromData = timeValue.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true });
+        } else {
+          processed.lastUpdateFromData = String(val);
+        }
       }
     });
 
