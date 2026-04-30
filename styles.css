@@ -304,7 +304,7 @@ footer {
   animation: ticker 60s linear infinite;
   color: var(--yellow);
   font-weight: bold;
-  font-size: 18px;
+  font-size: 24px;
 }
 
 @keyframes ticker {

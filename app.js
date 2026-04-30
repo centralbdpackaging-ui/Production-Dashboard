@@ -2,7 +2,7 @@
 const CONFIG = {
   SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbxIewqsIP4ibjYe_AmOqbVcccFm_hnQOD2T2l4a1gf8ghHAqQupFFwss3T73ZJuQTSM/exec',
   REFRESH_INTERVAL: 30000,
-  DEFAULT_LANGUAGE: 'en',
+  DEFAULT_LANGUAGE: 'bn',
   DEFAULT_ZOOM: 1.0
 };
 
@@ -617,7 +617,14 @@ function renderMachineGrid(id, machines) {
     
     // Status Badge Logic
     const sClass = isRun ? 'badge-run' : (isBD ? 'badge-bd' : 'badge-idle');
-    const statusLabel = isBD ? 'BREAKDOWN' : s.toUpperCase();
+    let statusLabel = s.toUpperCase();
+    if (State.language === 'bn') {
+      if (isRun) statusLabel = 'চলমান';
+      else if (isBD) statusLabel = 'ব্রেকডাউন';
+      else statusLabel = 'আইডেল';
+    } else {
+      if (isBD) statusLabel = 'BREAKDOWN';
+    }
     const badgeBlink = !isRun ? 'blink' : '';
     const badgeStyle = !isRun ? 'background: var(--red) !important; color: white !important; border-color: var(--red) !important;' : '';
 
@@ -648,9 +655,9 @@ function renderMachineGrid(id, machines) {
         </div>
         <div class="m-progress"><div style="width:${pct}%; background:${pctColor}"></div></div>
         <div class="m-footer" style="align-items: center;">
-          <span class="blink" style="color:${pctColor}; font-weight:bold">Ach: ${pct}%</span>
+          <span class="blink" style="color:${pctColor}; font-weight:bold"><span data-en="Ach:" data-bn="অর্জিত:">Ach:</span> ${pct}%</span>
           ${!isRun && reason ? `<span class="blink" style="font-size: 12px; color: var(--red); max-width: 50%; text-align: center; line-height: 1.1;">${reason}</span>` : ''}
-          <span class="blink" style="color:var(--green)">${m.lastUpdate || 'Live'}</span>
+          <span class="blink" style="color:var(--green)">${m.lastUpdate || (State.lang === 'bn' ? 'লাইভ' : 'Live')}</span>
         </div>
       </div>
     `;
@@ -727,8 +734,11 @@ const Ticker = {
       const t = Number(m.target) || 0;
       const pct = t > 0 ? Math.round((p / t) * 100) : 0;
       
-      // Ticker Colors: Name=White, Target=Blue, Prod=Green, Eff=Orange/Yellow
-      return `<span style="color:#ffffff">[${m.id || m.machineNo}]</span> <span style="color:var(--target-blue)">Target: ${t.toLocaleString()}</span> | <span style="color:var(--prod-green)">Prod: ${p.toLocaleString()}</span> <span style="color:var(--ach-orange)">(${pct}%)</span>`;
+      // Ticker labels in Bengali/English
+      const targetLbl = State.language === 'bn' ? 'লক্ষ্যমাত্রা:' : 'Target:';
+      const prodLbl = State.language === 'bn' ? 'উৎপাদন:' : 'Prod:';
+      
+      return `<span style="color:#ffffff">[${m.id || m.machineNo}]</span> <span style="color:var(--target-blue)">${targetLbl} ${t.toLocaleString()}</span> | <span style="color:var(--prod-green)">${prodLbl} ${p.toLocaleString()}</span> <span style="color:var(--ach-orange)">(${pct}%)</span>`;
     });
     
     el.innerHTML = '&nbsp;&nbsp;&bull;&nbsp;&nbsp;' + parts.join('&nbsp;&nbsp;&bull;&nbsp;&nbsp;') + '&nbsp;&nbsp;&bull;&nbsp;&nbsp;';
