@@ -561,8 +561,15 @@ function renderAllSlides() {
     safeSetText(`${prefix}-idle-count`, stats.idle);
     safeSetText(`${prefix}-bd-count`, stats.bd);
 
-    // Sort machines by production (largest to smallest)
-    const sortedList = [...list].sort((a, b) => (Number(b.prod) || 0) - (Number(a.prod) || 0));
+    // Sort machines by Achievement % (largest to smallest)
+    const sortedList = [...list].sort((a, b) => {
+      const getPct = (m) => {
+        const p = Number(m.prod) || 0;
+        const t = Number(m.target) || 0;
+        return t > 0 ? (p / t) : 0;
+      };
+      return getPct(b) - getPct(a);
+    });
 
     renderMachineGrid(`${prefix}-grid`, sortedList);
 
