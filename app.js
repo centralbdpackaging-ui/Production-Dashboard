@@ -28,11 +28,8 @@ function init() {
 
   // Auto-detect Shift based on time (Day: 08:00 - 20:00, Night: rest)
   const hour = new Date().getHours();
-  if (hour >= 8 && hour < 20) {
-    State.selectedShift = 'Day';
-  } else {
-    State.selectedShift = 'Night';
-  }
+  State.selectedShift = (hour >= 8 && hour < 20) ? 'Day' : 'Night';
+  syncShiftUI();
 
   setupEventListeners();
   applyLanguage();
@@ -224,7 +221,17 @@ function syncSettingsUI() {
   if (zoomVal) zoomVal.innerText = `${Math.round(State.zoom * 100)}%`;
   if (autoSlideToggle) autoSlideToggle.checked = (State.timer !== null);
 
-  // Highlighting is handled by CSS when side panel is open, but we still update the checked state
+  syncShiftUI();
+}
+
+function syncShiftUI() {
+  document.querySelectorAll('.shift-btn').forEach(btn => {
+    if (btn.dataset.shift === State.selectedShift) {
+      btn.classList.add('active');
+    } else {
+      btn.classList.remove('active');
+    }
+  });
 }
 
 function showLoading(show) {
@@ -454,20 +461,6 @@ function processRawData(response) {
       if (k === 'category' || k === 'section' || k === 'dept') {
         m.category = val;
       }
-      if (k.includes('lastupdatetime') && val) {
-        let timeValue = val;
-        // If it's a string that looks like a date/time, try to parse it
-        if (typeof val === 'string' && (val.includes(':') || val.includes('-') || val.includes('/'))) {
-          const d = new Date(val);
-          if (!isNaN(d.getTime())) timeValue = d;
-        }
-        
-        if (timeValue instanceof Date) {
-          processed.lastUpdateFromData = timeValue.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true });
-        } else {
-          processed.lastUpdateFromData = String(val);
-        }
-      }
     });
 
 
@@ -500,6 +493,24 @@ function processRawData(response) {
 
     // Only matching rows reach here
     processed.rawFiltered.push(row);
+
+    // --- 🆕 Extract Latest Update Time from this filtered row ---
+    Object.keys(row).forEach(key => {
+      const k = key.toLowerCase().replace(/\s+/g, '');
+      if (k.includes('lastupdatetime')) {
+        const val = row[key];
+        if (val) {
+          let timeStr = String(val);
+          const d = new Date(val);
+          if (!isNaN(d.getTime())) {
+            // If it parses as a date, extract the time part
+            timeStr = d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true });
+          }
+          // If it doesn't parse as a date (like a custom string), we keep the original string
+          processed.lastUpdateFromData = timeStr;
+        }
+      }
+    });
 
     // 3. Cleanup & Validation
     const idStr = String(m.id || "").toUpperCase().trim();
