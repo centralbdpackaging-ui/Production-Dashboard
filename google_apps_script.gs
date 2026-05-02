@@ -5,7 +5,8 @@
 // ============================================================
 
 function doGet(e) {
-  const params = e.parameter || {};
+  // ✅ Check if 'e' exists to prevent crash when running manually in the script editor
+  const params = (e && e.parameter) ? e.parameter : {};
   const output = ContentService.createTextOutput();
   output.setMimeType(ContentService.MimeType.JSON);
 
